@@ -1,9 +1,9 @@
 cabal-version:      3.4
 name:               draft
 version:            0.1.0.0
-author:             IOG's education team
+author:             Markos Girgis
 maintainer:         education@iohk.io
-license:            Apache-2.0
+license:            MIT
 build-type:         Simple
 
 common common-all
@@ -33,7 +33,7 @@ common common-all-tests
 
 library
     import:             common-all
-    hs-source-dirs:     lecture
+    hs-source-dirs:     on-chain
                       , homework
     exposed-modules:    Homework1
                         Homework2

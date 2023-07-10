@@ -25,8 +25,11 @@ import           Utilities                 (Network, posixTimeFromIso8601,
 ----------------------------------- ON-CHAIN / VALIDATOR ------------------------------------------
 
 data DataConsentDatum = DataConsentDatum
-    { beneficiary :: PubKeyHash
-    , deadline    :: POSIXTime
+    { beneficiary     :: PubKeyHash -- TODO: remove this and find who created the utxo by the utxo info somehow
+    , timePeriod      :: POSIXTime
+    , browsingHistory :: Bool
+    , locationData    :: Bool
+    , personalDetails :: Bool
     }
 
 unstableMakeIsData ''DataConsentDatum
@@ -48,7 +51,7 @@ mkVestingValidator dat () ctx = traceIfFalse "beneficiary's signature missing" s
     signedByBeneficiary = txSignedBy info $ beneficiary dat
 
     deadlineReached :: Bool
-    deadlineReached = contains (from $ deadline dat) $ txInfoValidRange info
+    deadlineReached = contains (from $ timePeriod dat) $ txInfoValidRange info
 
 {-# INLINABLE  mkWrappedVestingValidator #-}
 mkWrappedVestingValidator :: BuiltinData -> BuiltinData -> BuiltinData -> ()
@@ -66,8 +69,11 @@ saveVal = writeValidatorToFile "./assets/data-consent.plutus" validator
 vestingAddressBech32 :: Network -> String
 vestingAddressBech32 network = validatorAddressBech32 network validator
 
-printVestingDatumJSON :: PubKeyHash -> String -> IO ()
-printVestingDatumJSON pkh time = printDataToJSON $ DataConsentDatum
+printVestingDatumJSON :: PubKeyHash -> String -> Bool -> Bool -> Bool -> IO ()
+printVestingDatumJSON pkh time brHist locData prsnlDet = printDataToJSON $ DataConsentDatum
     { beneficiary = pkh
-    , deadline    = fromJust $ posixTimeFromIso8601 time
+    , timePeriod    = fromJust $ posixTimeFromIso8601 time
+    , browsingHistory = brHist
+    , locationData = locData
+    , personalDetails = prsnlDet
     }
