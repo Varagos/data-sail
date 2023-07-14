@@ -6,10 +6,7 @@
   "shutdownAction": "stopCompose",
   "customizations": {
     "vscode": {
-      "extensions": [
-        "haskell.haskell",
-        "vigoo.stylish-haskell"
-      ],
+      "extensions": ["haskell.haskell", "vigoo.stylish-haskell", "dbaeumer.vscode-eslint", "esbenp.prettier-vscode"],
       "settings": {
         "haskell.formattingProvider": "stylish-haskell"
       }
