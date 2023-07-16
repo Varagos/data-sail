@@ -9,6 +9,7 @@
 
 module DataListing where
 
+import           Data.String
 import           Plutus.V1.Ledger.Value    (adaSymbol, adaToken, valueOf)
 import           Plutus.V2.Ledger.Api      (Address, BuiltinData, Datum (Datum),
                                             OutputDatum (NoOutputDatum, OutputDatum, OutputDatumHash),
@@ -19,8 +20,9 @@ import           Plutus.V2.Ledger.Api      (Address, BuiltinData, Datum (Datum),
 import           Plutus.V2.Ledger.Contexts (findDatum)
 import           PlutusTx                  (FromData (fromBuiltinData), compile,
                                             unstableMakeIsData)
-import           PlutusTx.Prelude          (Bool (..), Eq (..), Integer,
-                                            Maybe (..), Ord ((>=)), traceError,
+import           PlutusTx.Prelude          (Bool (..), BuiltinByteString,
+                                            Eq (..), Integer, Maybe (..),
+                                            Ord ((>=)), traceError,
                                             traceIfFalse)
 import qualified Prelude
 import           Utilities                 (wrapValidator, writeValidatorToFile)
@@ -43,8 +45,9 @@ parseDataListingDatum o info = case o of
 
 -- Datum containing all the relevant information
 data DataListDatum = DataListDatum
-    { dataOwner :: Address
-    , price     :: Integer
+    { dataOwner    :: Address
+    , price        :: Integer
+    , dataLocation :: BuiltinByteString
     } deriving Prelude.Show
 unstableMakeIsData ''DataListDatum
 

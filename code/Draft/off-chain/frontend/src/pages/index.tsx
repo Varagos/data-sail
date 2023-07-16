@@ -11,9 +11,10 @@ import { useState } from 'react';
 import { Data, fromHex } from 'lucid-cardano';
 import DataConsentComponent from '@/components/DataConsent';
 import DataListing from '@/components/DataListing';
+import Buyer from '@/components/Buyer';
 
 export default function Home() {
-  type Person = 'oracle' | 'user' | 'owner' | 'seller';
+  type Person = 'oracle' | 'user' | 'owner' | 'seller' | 'buyer';
   const [isPerson, setIsPerson] = useState<Person>('seller');
   const { appState, setAppState } = useContext(AppStateContext);
   const { wAddr, scPolicyIdHex, scAssetClassHex, oracleWithNftUTxO, oracleAddress, minPercent, txScriptsDeployment } =
@@ -38,6 +39,8 @@ export default function Home() {
       setIsPerson('owner');
     } else if (v === 'seller') {
       setIsPerson('seller');
+    } else if (v === 'buyer') {
+      setIsPerson('buyer');
     }
 
     console.log(isPerson);
@@ -133,6 +136,17 @@ export default function Home() {
         >
           Seller
         </button>
+
+        <button
+          onClick={() => handleClick('buyer')}
+          className={`${
+            isPerson == 'buyer'
+              ? 'bg-zinc-100 text-zinc-800 shadow-[0_5px_0px_0px_rgba(255,251,251,0.6)]'
+              : 'bg-zinc-900 text-zinc-50 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)]'
+          }  font-quicksand text-lg font-bold py-3 px-8 rounded-lg active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)] `}
+        >
+          Buyer
+        </button>
       </div>
 
       {/* ACTIONS SECTION */}
@@ -159,6 +173,7 @@ export default function Home() {
           isPerson === 'seller' && <DataListing />
           // <DataConsentComponent />
         }
+        {isPerson === 'buyer' && <Buyer />}
       </div>
     </main>
   );
