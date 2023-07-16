@@ -19,13 +19,6 @@ index-state:
 
 packages: 
     Utilities
-    Week02
-    Week03
-    Week04
-    Week05
-    Week06
-    Week08
-    Week09
     Draft
 
 -- We never, ever, want this.
