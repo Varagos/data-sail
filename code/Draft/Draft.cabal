@@ -39,7 +39,8 @@ library
                         Homework2
                         ParameterizedVesting
                         Vesting
-                        DataConsent
+                        DataListing
+                        DataTokenMinting
 
 test-suite draft-homework
     import:             common-all-tests

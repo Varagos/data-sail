@@ -13,8 +13,8 @@ import DataConsentComponent from '@/components/DataConsent';
 import DataListing from '@/components/DataListing';
 
 export default function Home() {
-  type Person = 'oracle' | 'user' | 'owner' | 'draft';
-  const [isPerson, setIsPerson] = useState<Person>('oracle');
+  type Person = 'oracle' | 'user' | 'owner' | 'seller';
+  const [isPerson, setIsPerson] = useState<Person>('seller');
   const { appState, setAppState } = useContext(AppStateContext);
   const { wAddr, scPolicyIdHex, scAssetClassHex, oracleWithNftUTxO, oracleAddress, minPercent, txScriptsDeployment } =
     appState;
@@ -36,8 +36,8 @@ export default function Home() {
       setIsPerson('user');
     } else if (v === 'owner') {
       setIsPerson('owner');
-    } else if (v === 'draft') {
-      setIsPerson('draft');
+    } else if (v === 'seller') {
+      setIsPerson('seller');
     }
 
     console.log(isPerson);
@@ -124,14 +124,14 @@ export default function Home() {
         </button>
 
         <button
-          onClick={() => handleClick('draft')}
+          onClick={() => handleClick('seller')}
           className={`${
-            isPerson == 'draft'
+            isPerson == 'seller'
               ? 'bg-zinc-100 text-zinc-800 shadow-[0_5px_0px_0px_rgba(255,251,251,0.6)]'
               : 'bg-zinc-900 text-zinc-50 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)]'
           }  font-quicksand text-lg font-bold py-3 px-8 rounded-lg active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)] `}
         >
-          Draft
+          Seller
         </button>
       </div>
 
@@ -156,7 +156,7 @@ export default function Home() {
         {isPerson == 'user' && <Stablecoin />}
 
         {
-          isPerson === 'draft' && <DataListing />
+          isPerson === 'seller' && <DataListing />
           // <DataConsentComponent />
         }
       </div>
