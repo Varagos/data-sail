@@ -7,9 +7,9 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
+
 module DataListing where
 
-import           Data.String
 import           Plutus.V1.Ledger.Value    (adaSymbol, adaToken, valueOf)
 import           Plutus.V2.Ledger.Api      (Address, BuiltinData, Datum (Datum),
                                             OutputDatum (NoOutputDatum, OutputDatum, OutputDatumHash),
@@ -22,7 +22,7 @@ import           PlutusTx                  (FromData (fromBuiltinData), compile,
                                             unstableMakeIsData)
 import           PlutusTx.Prelude          (Bool (..), BuiltinByteString,
                                             Eq (..), Integer, Maybe (..),
-                                            Ord ((>=)), traceError,
+                                            Ord ((>=)), filter, traceError,
                                             traceIfFalse)
 import qualified Prelude
 import           Utilities                 (wrapValidator, writeValidatorToFile)
@@ -73,7 +73,7 @@ mkValidator dat r ctx = case r of
     txOutputs = txInfoOutputs info
 
     txOutToOwner :: TxOut
-    txOutToOwner = case Prelude.filter (\o -> txOutAddress o == dataOwner dat) txOutputs of
+    txOutToOwner = case filter (\o -> txOutAddress o == dataOwner dat) txOutputs of
         []  -> traceError "No output to collateral owner"
         [o] -> o
         _   -> traceError "More than one output to collateral owner"
