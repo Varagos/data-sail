@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "name": "Data Sail Smart Contract",
+  "description": "This is a Chrome extension built with React and TypeScript",
+  "icons": {
+    "16": "assets/ext-icon.png",
+    "48": "assets/ext-icon.png",
+    "128": "assets/ext-icon.png"
+  },
+  "action": {
+    "default_popup": "js/index.html",
+    "default_title": "Data Sail Smart Contract"
+  }
+}
