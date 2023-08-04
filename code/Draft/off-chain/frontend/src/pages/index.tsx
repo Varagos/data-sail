@@ -49,7 +49,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen w-screen h-screen gap-6 flex-row-reverse items-center justify-between px-5 pb-5  pt-20 bg-zinc-800">
       <div className="flex flex-col items-center justify-start  w-[380px] mt-2">
-        {/* USER LOGGED */}
+        {/* USER LOGGED - ABSOLUTE POSITION */}
         <div className="absolute justify-center items-center right-0 top-5 bg-zinc-50  h-12  w-48 rounded-l-2xl flex flex-row">
           <HiUserCircle className="text-4xl text-zinc-600" onClick={refreshWallet} />
           <p className="text-lg mx-2 text-zinc-800">{wAddr ? `...${wAddr.substring(102)}` : ''}</p>
@@ -93,7 +93,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* PERSON BUTTONS */}
+      {/* PERSON BUTTONS - ABSOLUTE POSITION */}
       <div className="absolute top-4 left-5 flex flex-row gap-4">
         <button
           onClick={() => handleClick('oracle')}
@@ -149,7 +149,7 @@ export default function Home() {
         </button>
       </div>
 
-      {/* ACTIONS SECTION */}
+      {/* ACTIONS SECTION - MAIN CONTAINER(WHITE AND ROUNDED) */}
       <div className="flex flex-col items-center gap-8  h-full py-10 bg-zinc-50 w-4/5 rounded-2xl">
         {/* ORACLE ACTIONS */}
         {isPerson == 'oracle' && (

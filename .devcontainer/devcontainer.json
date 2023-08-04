@@ -6,7 +6,13 @@
   "shutdownAction": "stopCompose",
   "customizations": {
     "vscode": {
-      "extensions": ["haskell.haskell", "vigoo.stylish-haskell", "dbaeumer.vscode-eslint", "esbenp.prettier-vscode"],
+      "extensions": [
+        "haskell.haskell",
+        "vigoo.stylish-haskell",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "aaravb.chrome-extension-developer-tools"
+      ],
       "settings": {
         "haskell.formattingProvider": "stylish-haskell"
       }

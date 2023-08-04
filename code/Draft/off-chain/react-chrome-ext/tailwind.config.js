@@ -4,6 +4,9 @@ module.exports = {
     // darkMode: false, // or 'media' or 'class'
     theme: {
         extend: {
+            minHeight: (theme) => ({
+                ...theme('spacing'),
+            }),
             backgroundImage: {
                 "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
                 "gradient-conic":

@@ -14,3 +14,8 @@ Build the extension
 ### `npm run watch`
 
 Run Webpack in watch mode.
+
+### Notes
+
+View extension logs:
+Right click extension -> Inspect Popup
