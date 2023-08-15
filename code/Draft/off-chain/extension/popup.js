@@ -1,12 +1,15 @@
 // adding a new bookmark row to the popup
-const addNewBookmark = () => {};
+import { Lucid } from "https://unpkg.com/lucid-cardano@0.10.1/web/mod.js"
 
-const viewBookmarks = () => {};
+console.log('popup.js loaded');
+const addNewBookmark = () => { };
 
-const onPlay = e => {};
+const viewBookmarks = () => { };
 
-const onDelete = e => {};
+const onPlay = e => { };
 
-const setBookmarkAttributes =  () => {};
+const onDelete = e => { };
 
-document.addEventListener("DOMContentLoaded", () => {});
+const setBookmarkAttributes = () => { };
+
+document.addEventListener("DOMContentLoaded", () => { });

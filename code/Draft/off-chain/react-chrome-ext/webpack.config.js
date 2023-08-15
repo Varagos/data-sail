@@ -4,7 +4,8 @@ const CopyPlugin = require("copy-webpack-plugin")
 
 module.exports = {
     entry: {
-        index: "./src/index.tsx"
+        index: "./src/index.tsx",
+        sandbox: "./src/sandbox.tsx"
     },
     mode: 'production',
     module: {
@@ -41,7 +42,8 @@ module.exports = {
                 { from: "assets", to: "../assets" },
             ],
         }),
-        ...getHtmlPlugins(["index"]),
+        // Use HtmlWebpackPlugin to generate an HTML file for the popup and sandboxed pages
+        ...getHtmlPlugins(["index", "sandbox"]),
     ],
     resolve: {
         extensions: [".tsx", ".ts", ".js"],
@@ -50,6 +52,11 @@ module.exports = {
         path: path.join(__dirname, "dist/js"),
         filename: "[name].js",
     },
+    experiments: {
+        asyncWebAssembly: true,
+        topLevelAwait: true,
+        layers: true // optional, with some bundlers/frameworks it doesn't work without
+    }
 };
 
 function getHtmlPlugins(chunks) {

@@ -96,6 +96,27 @@ export default function Home() {
       {/* PERSON BUTTONS - ABSOLUTE POSITION */}
       <div className="absolute top-4 left-5 flex flex-row gap-4">
         <button
+          onClick={() => handleClick('seller')}
+          className={`${
+            isPerson == 'seller'
+              ? 'bg-zinc-100 text-zinc-800 shadow-[0_5px_0px_0px_rgba(255,251,251,0.6)]'
+              : 'bg-zinc-900 text-zinc-50 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)]'
+          }  font-quicksand text-lg font-bold py-3 px-8 rounded-lg active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)] `}
+        >
+          Seller
+        </button>
+
+        <button
+          onClick={() => handleClick('buyer')}
+          className={`${
+            isPerson == 'buyer'
+              ? 'bg-zinc-100 text-zinc-800 shadow-[0_5px_0px_0px_rgba(255,251,251,0.6)]'
+              : 'bg-zinc-900 text-zinc-50 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)]'
+          }  font-quicksand text-lg font-bold py-3 px-8 rounded-lg active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)] `}
+        >
+          Buyer
+        </button>
+        <button
           onClick={() => handleClick('oracle')}
           className={`${
             isPerson == 'oracle'
@@ -124,28 +145,6 @@ export default function Home() {
           }  font-quicksand text-lg font-bold py-3 px-8 rounded-lg active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)] `}
         >
           User
-        </button>
-
-        <button
-          onClick={() => handleClick('seller')}
-          className={`${
-            isPerson == 'seller'
-              ? 'bg-zinc-100 text-zinc-800 shadow-[0_5px_0px_0px_rgba(255,251,251,0.6)]'
-              : 'bg-zinc-900 text-zinc-50 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)]'
-          }  font-quicksand text-lg font-bold py-3 px-8 rounded-lg active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)] `}
-        >
-          Seller
-        </button>
-
-        <button
-          onClick={() => handleClick('buyer')}
-          className={`${
-            isPerson == 'buyer'
-              ? 'bg-zinc-100 text-zinc-800 shadow-[0_5px_0px_0px_rgba(255,251,251,0.6)]'
-              : 'bg-zinc-900 text-zinc-50 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)]'
-          }  font-quicksand text-lg font-bold py-3 px-8 rounded-lg active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)] `}
-        >
-          Buyer
         </button>
       </div>
 

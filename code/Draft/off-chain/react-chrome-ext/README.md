@@ -19,3 +19,7 @@ Run Webpack in watch mode.
 
 View extension logs:
 Right click extension -> Inspect Popup
+
+### Links
+
+Content_security_policy: https://developer.chrome.com/docs/extensions/mv3/manifest/content_security_policy/
