@@ -7,8 +7,8 @@ const saveHistory = async (req, res) => {
   }
 
   console.log('req.body', req.body);
-  const data = req.body; // Validate and sanitize the data as needed
-  const result = await storage.storeData(JSON.stringify(data));
+  const data = req.body.data; // Validate and sanitize the data as needed
+  const result = await storage.storeData(data);
   console.log('result', result);
 
   res.status(201).json({ success: true, data: result });
