@@ -1,5 +1,5 @@
 // pages/api/saveHistory.js
-import { storage } from '@/utilities/storage';
+import { storage } from '@/utilities/storage/index';
 
 const saveHistory = async (req, res) => {
   if (req.method !== 'POST') {
@@ -9,7 +9,7 @@ const saveHistory = async (req, res) => {
   console.log('req.body', req.body);
   const data = req.body.data; // Validate and sanitize the data as needed
   const result = await storage.storeData(data);
-  console.log('result', result);
+  console.log('Saving history result', result);
 
   res.status(201).json({ success: true, data: result });
 };

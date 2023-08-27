@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { sentence } from 'txtgen';
 import CryptoJS from 'crypto-js';
 import ButtonDarkFullWidth from './elements/dark-full-w-button';
 import {
@@ -42,18 +41,15 @@ function DataListing() {
   const [randomData, setRandomData] = useState('');
   const [encryptedData, setEncryptedData] = useState('');
   const [encryptionKey, setEncryptionKey] = useState('No Key');
-  // Poll every 2s
-  const data = usePollingData(2000);
-
-  const generateData = () => {
-    setRandomData(sentence());
-  };
+  // Poll every 3s
+  const data = usePollingData(3000);
+  const [askingPrice, setAskingPrice] = useState<number | null>(null);
 
   /**
    * 1. Encrypt data
    * 2. Transaction to mint DataToken and lock under DataListing smart contract
    */
-  const handleDataSelling = () => {
+  const handleDataSelling = async () => {
     /***
      * CryptoJS.lib.WordArray.random(128/8) generates a 128-bit random encryption key.
      * The .toString(CryptoJS.enc.Hex) converts the key to a hex string for easier handling.
@@ -65,7 +61,7 @@ function DataListing() {
     // Here you can store the ciphertext wherever you want
     console.log({ encryptedData: ciphertext });
 
-    mintDataToken();
+    await mintDataToken();
     decryptData(ciphertext, key);
   };
 
@@ -96,6 +92,7 @@ function DataListing() {
 
   // Apply the params
   const getFinalPolicy = (utxo: UTxO): GetFinalPolicy => {
+    // Convert to hex
     const tokenNameHex = fromText('DataToken');
     // TransactionId, txIndex and tokenName
     const Params = Data.Tuple([Data.Bytes(), Data.Integer(), Data.Bytes()]);
@@ -127,6 +124,7 @@ function DataListing() {
     if (!wAddr) throw new Error('Wallet not initialized');
     if (!lucid) throw new Error('Lucid not initialized');
     const utxo = await getUtxo(wAddr);
+    console.log(`Found UTxO: ${utxo.address}`);
     const { policy, unit } = getFinalPolicy(utxo);
 
     const redeemer = Data.void();
@@ -142,7 +140,12 @@ function DataListing() {
     await signAndSubmitTx(tx);
   };
 
+  /**
+   * TODO? merge into 1 tx with minting of token?
+   */
   const lockUnderDataListing = async (nftAssetClassHex: string, nftUtxo: UTxO) => {
+    console.log({ askingPrice });
+    return;
     if (!lucid) throw new Error('Lucid not initialized');
     if (!wAddr) throw new Error('Wallet not initialized');
 
@@ -185,12 +188,12 @@ function DataListing() {
             </li>
           ))}
         </ul>
-        <div className="flex flex-col mb-2">
+        {/* <div className="flex flex-col mb-2">
           <ButtonDarkFullWidth clickHandler={generateData}>Generate Random Data</ButtonDarkFullWidth>
           <p className="my-2">{randomData}</p>
-        </div>
+        </div> */}
         <div className="flex flex-col mb-2">
-          <ButtonDarkFullWidth clickHandler={handleDataSelling}>List Data for Sale</ButtonDarkFullWidth>
+          <ButtonDarkFullWidth clickHandler={handleDataSelling}>Mint Data Token</ButtonDarkFullWidth>
           <div className="flex justify-between items-center mt-2">
             <p className="my-2 flex-grow">{encryptionKey}</p>
             <button
@@ -201,8 +204,19 @@ function DataListing() {
             </button>
           </div>
         </div>
+        {/* Add an input for asking price */}
         <div className="flex flex-col mb-2">
-          <ButtonDarkFullWidth clickHandler={() => {}}>List Data for Sale</ButtonDarkFullWidth>
+          <input
+            type="text"
+            placeholder="Asking Price"
+            className="w-full rounded-lg p-3 text-zinc-50 bg-zinc-800 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)] font-quicksand font-bold active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)]"
+            onChange={(e) => setAskingPrice(parseInt(e.target.value))}
+          />
+        </div>
+        <div className="flex flex-col mb-2">
+          <ButtonDarkFullWidth clickHandler={() => lockUnderDataListing(null, null)}>
+            List Data for Sale
+          </ButtonDarkFullWidth>
         </div>
       </div>
     </div>

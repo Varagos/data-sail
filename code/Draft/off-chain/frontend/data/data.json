@@ -1,0 +1,40 @@
+{
+  "1692968803874": [
+    {
+      "url": "https://www.facebook.com/",
+      "count": 108
+    },
+    {
+      "url": "https://chat.openai.com/",
+      "count": 82
+    },
+    {
+      "url": "https://www.youtube.com/",
+      "count": 76
+    },
+    {
+      "url": "https://m.youtube.com/",
+      "count": 45
+    },
+    {
+      "url": "https://mail.google.com/mail/u/0/?tab=rm&ogbl#inbox",
+      "count": 14
+    },
+    {
+      "url": "http://localhost:3000/",
+      "count": 12
+    },
+    {
+      "url": "http://localhost:3001/",
+      "count": 3
+    },
+    {
+      "url": "https://www.istorm.gr/mac/macbook-air.html",
+      "count": 3
+    },
+    {
+      "url": "https://meshjs.dev/apis/browserwallet",
+      "count": 1
+    }
+  ]
+}

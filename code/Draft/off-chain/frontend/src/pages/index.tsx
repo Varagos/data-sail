@@ -17,8 +17,17 @@ export default function Home() {
   type Person = 'oracle' | 'user' | 'owner' | 'seller' | 'buyer';
   const [isPerson, setIsPerson] = useState<Person>('seller');
   const { appState, setAppState } = useContext(AppStateContext);
-  const { wAddr, scPolicyIdHex, scAssetClassHex, oracleWithNftUTxO, oracleAddress, minPercent, txScriptsDeployment } =
-    appState;
+  const {
+    wAddr,
+    scPolicyIdHex,
+    scAssetClassHex,
+    oracleWithNftUTxO,
+    oracleAddress,
+    minPercent,
+    txScriptsDeployment,
+    dataTokenPolicy,
+    dataTokenPolicyIdHex,
+  } = appState;
 
   const refreshWallet = async () => {
     if (!appState.lucid || !window.cardano.nami) return;
@@ -65,6 +74,7 @@ export default function Home() {
             type="address"
             value={wAddr ? `${wAddr.substring(0, 15)}...${wAddr.substring(100)}` : ''}
           />
+          <ExplorerLink message="Data Token Policy Id in hex" type="policy" value={dataTokenPolicyIdHex || ''} />
           <ExplorerLink message="Oracle address: " type="address" value={oracleAddress || ''} />
 
           <ExplorerLink
