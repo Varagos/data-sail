@@ -13,11 +13,12 @@ module DataListing where
 import           Plutus.V1.Ledger.Value    (adaSymbol, adaToken, valueOf)
 import           Plutus.V2.Ledger.Api      (Address, BuiltinData, Datum (Datum),
                                             OutputDatum (NoOutputDatum, OutputDatum, OutputDatumHash),
+                                            PubKeyHash,
                                             ScriptContext (scriptContextTxInfo),
                                             TxInfo (txInfoOutputs),
                                             TxOut (txOutAddress, txOutValue),
-                                            Validator, mkValidatorScript)
-import           Plutus.V2.Ledger.Contexts (findDatum)
+                                            Validator, Value, mkValidatorScript)
+import           Plutus.V2.Ledger.Contexts (findDatum, valuePaidTo)
 import           PlutusTx                  (FromData (fromBuiltinData), compile,
                                             unstableMakeIsData)
 import           PlutusTx.Prelude          (Bool (..), BuiltinByteString,
@@ -45,9 +46,11 @@ parseDataListingDatum o info = case o of
 
 -- Datum containing all the relevant information
 data DataListDatum = DataListDatum
-    { dataOwner    :: Address
-    , price        :: Integer
-    , dataLocation :: BuiltinByteString
+    {
+     dataSeller :: PubKeyHash
+    -- , dataOwner  :: Address
+    , price     :: Integer
+    -- , dataLocation :: BuiltinByteString
     } deriving Prelude.Show
 unstableMakeIsData ''DataListDatum
 
@@ -59,7 +62,7 @@ unstableMakeIsData ''DataListingRedeemer
 {-# INLINABLE mkValidator #-}
 mkValidator :: DataListDatum -> DataListingRedeemer -> ScriptContext -> Bool
 mkValidator dat r ctx = case r of
-    Purchase -> traceIfFalse "amount required not paid to owner" checkPricePaidToOwner
+    Purchase -> traceIfFalse "amount required not paid to owner" buyerHasPaidSeller
     Redeem    -> traceError "Redeem not implemented"
         -- traceIfFalse "data owner's signature missing" checkSignedByCollOwner &&
         --          traceIfFalse "burned stablecoin amount mismatch" checkStablecoinAmount
@@ -69,26 +72,38 @@ mkValidator dat r ctx = case r of
     info :: TxInfo
     info = scriptContextTxInfo ctx
 
-    txOutputs :: [TxOut]
-    txOutputs = txInfoOutputs info
+    -- txOutputs :: [TxOut]
+    -- txOutputs = txInfoOutputs info
 
-    txOutToOwner :: TxOut
-    txOutToOwner = case filter (\o -> txOutAddress o == dataOwner dat) txOutputs of
-        []  -> traceError "No output to collateral owner"
-        [o] -> o
-        _   -> traceError "More than one output to collateral owner"
+    -- txOutToOwner :: TxOut
+    -- txOutToOwner = case filter (\o -> txOutAddress o == dataOwner dat) txOutputs of
+    --     []  -> traceError "No output to collateral owner"
+    --     [o] -> o
+    --     _   -> traceError "More than one output to collateral owner"
 
     -- In lovelaces
     dataPrice :: Integer
     dataPrice = price dat
 
     -- This is in Lovelaces
-    pricePaidToOwner :: Integer
-    pricePaidToOwner = valueOf (txOutValue txOutToOwner) adaSymbol adaToken
+    -- pricePaidToOwner :: Integer
+    -- pricePaidToOwner = valueOf (txOutValue txOutToOwner) adaSymbol adaToken
 
-    -- Check the price asked in ADA was paid to the data owner
-    checkPricePaidToOwner :: Bool
-    checkPricePaidToOwner = pricePaidToOwner >= dataPrice
+    -- -- Check the price asked in ADA was paid to the data owner
+    -- checkPricePaidToOwner :: Bool
+    -- checkPricePaidToOwner = pricePaidToOwner >= dataPrice
+
+    valuePaidToSeller :: Value
+    valuePaidToSeller = valuePaidTo info (dataSeller dat)
+
+    pricePaidToSeller :: Integer
+    pricePaidToSeller = valueOf valuePaidToSeller adaSymbol adaToken
+
+    buyerHasPaidSeller :: Bool
+    buyerHasPaidSeller = pricePaidToSeller >= dataPrice
+
+
+
 
 
 ---------------------------------------------------------------------------------------------------

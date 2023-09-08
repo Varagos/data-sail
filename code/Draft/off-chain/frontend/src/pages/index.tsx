@@ -8,7 +8,7 @@ import { HiUserCircle } from 'react-icons/hi';
 import { IoReloadCircleSharp } from 'react-icons/io5';
 import Stablecoin from '@/components/Stablecoin';
 import { useState } from 'react';
-import { Data, fromHex } from 'lucid-cardano';
+import { Data, Lucid, fromHex } from 'lucid-cardano';
 import DataConsentComponent from '@/components/DataConsent';
 import DataListing from '@/components/DataListing';
 import Buyer from '@/components/Buyer';
@@ -18,6 +18,7 @@ export default function Home() {
   const [isPerson, setIsPerson] = useState<Person>('seller');
   const { appState, setAppState } = useContext(AppStateContext);
   const {
+    lucid,
     wAddr,
     scPolicyIdHex,
     scAssetClassHex,
@@ -27,6 +28,7 @@ export default function Home() {
     txScriptsDeployment,
     dataTokenPolicy,
     dataTokenPolicyIdHex,
+    dataListingScript,
   } = appState;
 
   const refreshWallet = async () => {
@@ -95,6 +97,13 @@ export default function Home() {
           />
           <ExplorerLink message="Stablecoin PolicyId in Hex:" type="policy" value={scPolicyIdHex || ''} />
           <ExplorerLink message="Stablecoin AssetClass in Hex:" type="asset" value={scAssetClassHex || ''} />
+
+          {/* Added by me */}
+          <ExplorerLink
+            message="Data Listing Address: "
+            type="address"
+            value={lucid?.utils.validatorToAddress(dataListingScript) || ''}
+          />
 
           <div className="font-quicksand h-16 w-full overflow-hidden">
             <p className=" bg-zinc-800  text-base text-zinc-100 h-8 pt-[6px] pl-2">Depoyed with Minimum Locked % of:</p>{' '}
