@@ -1,30 +1,67 @@
-import { useEffect, useState } from 'react';
+import { AppStateContext } from '@/pages/_app';
+import { Data, Lucid, Script, UTxO } from 'lucid-cardano';
+import { useContext, useEffect, useState } from 'react';
+import { DataListingDatum, DataListingDatumType } from './DataListing';
 
 type UtxoEntry = {
   id: string;
-  value: number;
+  value: bigint;
 };
 
+type DataListingUTxOs = Array<{ utxo: UTxO; datum: DataListingDatumType }>;
+
 function Buyer() {
+  const { appState, setAppState } = useContext(AppStateContext);
+  const { lucid, wAddr, dataTokenPolicyIdHex, dataListingScript } = appState;
   const [utxos, setUtxos] = useState<UtxoEntry[]>([
     {
       id: '123',
-      value: 100,
+      value: BigInt(100),
     },
     {
       id: '456',
-      value: 200,
+      value: BigInt(200),
     },
   ]);
   const [selectedUtxo, setSelectedUtxo] = useState<string | null>(null);
 
+  async function dataListingUTxOs(lucid: Lucid, dataListingScript: Script): Promise<DataListingUTxOs> {
+    const dataListingAddress = lucid.utils.validatorToAddress(dataListingScript);
+    const utxos = await lucid.utxosAt(dataListingAddress);
+    const res: DataListingUTxOs = [];
+    for (const utxo of utxos) {
+      const datum = utxo.datum;
+      if (datum) {
+        try {
+          const d = Data.from<DataListingDatumType>(datum, DataListingDatum);
+          res.push({
+            utxo: utxo,
+            datum: d,
+          });
+        } catch (err) {
+          // ignore different datum types
+        }
+      }
+    }
+    return res;
+  }
+  const fetchUtxos = async () => {
+    if (!lucid) {
+      console.error('Lucid not initialized');
+      return;
+    }
+    const utxos = await dataListingUTxOs(lucid, dataListingScript);
+    const utxoEntries: UtxoEntry[] = utxos.map((utxo) => ({
+      id: `${utxo.utxo.txHash}#${utxo.utxo.outputIndex}`,
+      value: utxo.datum.price,
+    }));
+    setUtxos(utxoEntries);
+  };
+
   useEffect(() => {
     // fetch your UTXOs here and set them in state
+    fetchUtxos();
   }, []);
-
-  const refreshUtxos = () => {
-    // re-fetch UTXOs here
-  };
 
   const handleBuy = () => {
     // handle purchase of selected UTXO here
@@ -36,7 +73,7 @@ function Buyer() {
         <div className="flex flex-row justify-between items-center mb-5">
           <h2>Available Data Listings</h2>
           <button
-            onClick={refreshUtxos}
+            onClick={fetchUtxos}
             className="w-16 h-16 rounded-full bg-zinc-800 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)] font-quicksand font-bold active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)]"
           >
             🔄
@@ -57,7 +94,7 @@ function Buyer() {
                 className={selectedUtxo === utxo.id ? 'bg-zinc-200' : ''}
               >
                 <td className="p-3 border-b border-zinc-700">{utxo.id}</td>
-                <td className="p-3 border-b border-zinc-700">{utxo.value}</td>
+                <td className="p-3 border-b border-zinc-700">{utxo.value.toString()} Lovelaces</td>
               </tr>
             ))}
           </tbody>

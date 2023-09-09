@@ -28,13 +28,13 @@ const COMPILED_MINTING_VALIDATOR_WITHOUT_PARAMS =
 const DataListingRedeemer = Data.Enum([Data.Literal('Redeem'), Data.Literal('Purchase')]);
 type DataListingRedeemer = Data.Static<typeof DataListingRedeemer>;
 
-const DataListingDatum = Data.Object({
+export const DataListingDatum = Data.Object({
   dataSeller: Data.Bytes(),
   // In lovelace
   price: Data.Integer(),
   // dataLocation: Data.Bytes(),
 });
-type DataListingDatum = Data.Static<typeof DataListingDatum>;
+export type DataListingDatumType = Data.Static<typeof DataListingDatum>;
 
 function DataListing() {
   const { appState, setAppState } = useContext(AppStateContext);
@@ -128,6 +128,10 @@ function DataListing() {
     console.log(`Found UTxO: ${utxo.address}`);
     const { policy, unit } = getFinalPolicy(utxo);
 
+    // lucid.utils.keyHashToCredential
+    //   .payToAddress
+    const a = lucid.utils.keyHashToCredential('ad');
+    const address = lucid.utils.credentialToAddress(a);
     const redeemer = Data.void();
     const tx = await lucid
       .newTx()
@@ -156,7 +160,7 @@ function DataListing() {
 
     const pkh: string = getAddressDetails(wAddr).paymentCredential?.hash || '';
 
-    const datum: DataListingDatum = {
+    const datum: DataListingDatumType = {
       dataSeller: pkh,
       // dataOwner: '123',
       price: BigInt(1_000_000),
@@ -175,7 +179,8 @@ function DataListing() {
       )
       .addSignerKey(pkh)
       .complete();
-    await signAndSubmitTx(tx);
+    const txId = await signAndSubmitTx(tx);
+    console.log(`DataToken locked tx: ${txId}`);
   };
 
   return (
