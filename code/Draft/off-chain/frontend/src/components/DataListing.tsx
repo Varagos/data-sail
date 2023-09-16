@@ -30,6 +30,8 @@ type DataListingRedeemer = Data.Static<typeof DataListingRedeemer>;
 
 export const DataListingDatum = Data.Object({
   dataSeller: Data.Bytes(),
+
+  dataSellerAddress: Data.Bytes(),
   // In lovelace
   price: Data.Integer(),
   // dataLocation: Data.Bytes(),
@@ -120,6 +122,7 @@ function DataListing() {
     return { policy: dataTokenPolicy, unit: tokenAssetClass };
   };
 
+  // TODO Add check that we don't already have a DataToken in the wallet
   const mintDataToken = async () => {
     console.log(`Minting DataToken for ${wAddr}`);
     if (!wAddr) throw new Error('Wallet not initialized');
@@ -130,8 +133,8 @@ function DataListing() {
 
     // lucid.utils.keyHashToCredential
     //   .payToAddress
-    const a = lucid.utils.keyHashToCredential('ad');
-    const address = lucid.utils.credentialToAddress(a);
+    // const a = lucid.utils.keyHashToCredential('ad');
+    // const address = lucid.utils.credentialToAddress(a);
     const redeemer = Data.void();
     const tx = await lucid
       .newTx()
@@ -145,13 +148,30 @@ function DataListing() {
     await signAndSubmitTx(tx);
   };
 
+  const lookWalletForDataToken = async (): Promise<UTxO | null> => {
+    if (!lucid) throw new Error('Lucid not initialized');
+    if (!wAddr) throw new Error('Wallet not initialized');
+    const utxos = await lucid.utxosAt(wAddr);
+    const tokenNameHex = fromText('DataToken');
+
+    const dataTokenUtxo = utxos.find((utxo) => {
+      const assetIds = Object.keys(utxo.assets);
+      if (assetIds.length === 0) return false;
+      return assetIds.some((assetId) => assetId.endsWith(tokenNameHex));
+    });
+
+    return dataTokenUtxo ?? null;
+  };
   /**
    * TODO? merge into 1 tx with minting of token?
    */
   const lockUnderDataListing = async (nftUtxo: UTxO | null) => {
     console.log({ askingPrice });
     const { dataTokenAssetClassHex: nftAssetClassHex } = appState;
-    if (!nftAssetClassHex) throw new Error('DataToken not minted');
+    if (!nftAssetClassHex) {
+      throw new Error('DataToken not minted');
+      // const dataTokenUtxo = await lookWalletForDataToken();
+    }
     if (!lucid) throw new Error('Lucid not initialized');
     if (!wAddr) throw new Error('Wallet not initialized');
 
@@ -162,10 +182,13 @@ function DataListing() {
 
     const datum: DataListingDatumType = {
       dataSeller: pkh,
-      // dataOwner: '123',
+      // probably need to use fromHex here
+      dataSellerAddress: fromText(wAddr),
       price: BigInt(1_000_000),
+      // dataOwner: '123',
       // dataLocation: '123',
     };
+    console.log('created datum');
 
     const tx = await lucid!
       .newTx()

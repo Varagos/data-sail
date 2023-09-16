@@ -1,11 +1,13 @@
 import { AppStateContext } from '@/pages/_app';
-import { Data, Lucid, Script, UTxO } from 'lucid-cardano';
+import { Data, Lucid, Script, UTxO, getAddressDetails, toText } from 'lucid-cardano';
 import { useContext, useEffect, useState } from 'react';
 import { DataListingDatum, DataListingDatumType } from './DataListing';
 
 type UtxoEntry = {
   id: string;
   value: bigint;
+  utxo: UTxO;
+  datum: DataListingDatumType;
 };
 
 type DataListingUTxOs = Array<{ utxo: UTxO; datum: DataListingDatumType }>;
@@ -13,17 +15,8 @@ type DataListingUTxOs = Array<{ utxo: UTxO; datum: DataListingDatumType }>;
 function Buyer() {
   const { appState, setAppState } = useContext(AppStateContext);
   const { lucid, wAddr, dataTokenPolicyIdHex, dataListingScript } = appState;
-  const [utxos, setUtxos] = useState<UtxoEntry[]>([
-    {
-      id: '123',
-      value: BigInt(100),
-    },
-    {
-      id: '456',
-      value: BigInt(200),
-    },
-  ]);
-  const [selectedUtxo, setSelectedUtxo] = useState<string | null>(null);
+  const [utxos, setUtxos] = useState<UtxoEntry[]>([]);
+  const [selectedUtxo, setSelectedUtxo] = useState<UtxoEntry | null>(null);
 
   async function dataListingUTxOs(lucid: Lucid, dataListingScript: Script): Promise<DataListingUTxOs> {
     const dataListingAddress = lucid.utils.validatorToAddress(dataListingScript);
@@ -51,9 +44,11 @@ function Buyer() {
       return;
     }
     const utxos = await dataListingUTxOs(lucid, dataListingScript);
-    const utxoEntries: UtxoEntry[] = utxos.map((utxo) => ({
-      id: `${utxo.utxo.txHash}#${utxo.utxo.outputIndex}`,
-      value: utxo.datum.price,
+    const utxoEntries: UtxoEntry[] = utxos.map(({ utxo, datum }) => ({
+      id: `${utxo.txHash}#${utxo.outputIndex}`,
+      value: datum.price,
+      utxo,
+      datum,
     }));
     setUtxos(utxoEntries);
   };
@@ -63,7 +58,55 @@ function Buyer() {
     fetchUtxos();
   }, []);
 
+  const getSellerAddress = (utxoDatum: DataListingDatumType): string => {
+    if (!lucid) {
+      throw new Error('Lucid not initialized');
+    }
+    const sellerPubKeyHash = utxoDatum.dataSeller;
+    const sellerAddressHex = utxoDatum.dataSellerAddress;
+    const sellerAddress = toText(sellerAddressHex);
+    // We are misssing the staking credentials to create the address just from the pubkeyhash
+    // Nami and others wallets automatically add the staking credential when creating new wallets
+    console.log({ sellerAddressHex, sellerAddress });
+    console.log({ utxoSellerKeyHash: sellerPubKeyHash });
+    const credentials = lucid.utils.keyHashToCredential(sellerPubKeyHash);
+    console.log({ credentials: credentials.type });
+    const address = lucid.utils.credentialToAddress(credentials);
+    return sellerAddress;
+  };
+
+  // {
+  //     "sellerAddressHex": "616464725f746573743171716468327673677334706e777774647272757070336c747a686b33327a393668776b7634336879356e333333356a7276736d6432656e7a6c677561663768716379743575726b39793568766a733365727635306461366c327a7a71306574753638",
+  //     "sellerAddress": "addr_test1qqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335jrvsmd2enzlguaf7hqcyt5urk9y5hvjs3erv50da6l2zzq0etu68"
+  // }
+
+  /**
+   * Testing User1 (Seller){
+    "waddr": "addr_test1qqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335jrvsmd2enzlguaf7hqcyt5urk9y5hvjs3erv50da6l2zzq0etu68",
+    "pkh": "1b753208854337396d18f810c7eb15ed1508babbaccac6e4a4e318d2"
+}
+
+
+Datum has pubkeyhash: {
+    "utxoSellerKeyHash": "1b753208854337396d18f810c7eb15ed1508babbaccac6e4a4e318d2"
+}
+correct, but getSellerAddress returns address
+{
+    "sellerAddress": "addr_test1vqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335spv85en"
+}
+   */
+
   const handleBuy = () => {
+    // const pkh: string = getAddressDetails(wAddr!).paymentCredential?.hash || '';
+    // console.log({ waddr: wAddr!, pkh });
+    console.log('handleBuy');
+    if (!selectedUtxo) {
+      console.error('No UTXO selected');
+      return;
+    }
+    const selectedUtxoDatum = selectedUtxo.datum;
+    const sellerAddress = getSellerAddress(selectedUtxoDatum);
+    console.log({ sellerAddress });
     // handle purchase of selected UTXO here
   };
 
@@ -90,8 +133,8 @@ function Buyer() {
             {utxos.map((utxo) => (
               <tr
                 key={utxo.id}
-                onClick={() => setSelectedUtxo(utxo.id)}
-                className={selectedUtxo === utxo.id ? 'bg-zinc-200' : ''}
+                onClick={() => setSelectedUtxo(utxo)}
+                className={selectedUtxo?.id === utxo.id ? 'bg-zinc-200' : ''}
               >
                 <td className="p-3 border-b border-zinc-700">{utxo.id}</td>
                 <td className="p-3 border-b border-zinc-700">{utxo.value.toString()} Lovelaces</td>
