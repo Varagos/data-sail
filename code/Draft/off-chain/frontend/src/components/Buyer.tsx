@@ -2,6 +2,7 @@ import { AppStateContext } from '@/pages/_app';
 import { Data, Lucid, Script, UTxO, getAddressDetails, toText } from 'lucid-cardano';
 import { useContext, useEffect, useState } from 'react';
 import { DataListingDatum, DataListingDatumType } from './DataListing';
+import { signAndSubmitTx } from '@/utilities/utilities';
 
 type UtxoEntry = {
   id: string;
@@ -11,6 +12,9 @@ type UtxoEntry = {
 };
 
 type DataListingUTxOs = Array<{ utxo: UTxO; datum: DataListingDatumType }>;
+
+const DataListingRedeemer = Data.Enum([Data.Literal('Redeem'), Data.Literal('Purchase')]);
+type DataListingRedeemer = Data.Static<typeof DataListingRedeemer>;
 
 function Buyer() {
   const { appState, setAppState } = useContext(AppStateContext);
@@ -28,7 +32,7 @@ function Buyer() {
         try {
           const d = Data.from<DataListingDatumType>(datum, DataListingDatum);
           res.push({
-            utxo: utxo,
+            utxo,
             datum: d,
           });
         } catch (err) {
@@ -96,8 +100,12 @@ correct, but getSellerAddress returns address
 }
    */
 
-  const handleBuy = () => {
-    // const pkh: string = getAddressDetails(wAddr!).paymentCredential?.hash || '';
+  const handleBuy = async () => {
+    if (!lucid) {
+      console.error('Lucid not initialized');
+      return;
+    }
+    const pkh: string = getAddressDetails(wAddr!).paymentCredential?.hash || '';
     // console.log({ waddr: wAddr!, pkh });
     console.log('handleBuy');
     if (!selectedUtxo) {
@@ -106,8 +114,28 @@ correct, but getSellerAddress returns address
     }
     const selectedUtxoDatum = selectedUtxo.datum;
     const sellerAddress = getSellerAddress(selectedUtxoDatum);
+
+    const dataListingAddress = lucid.utils.validatorToAddress(dataListingScript);
+    const utxos = await lucid.utxosAt(dataListingAddress);
+    const utxo = utxos[0];
+    // const dataListingAddr = lucid.utils.validatorToAddress(dataListingScript);
+
     console.log({ sellerAddress });
+    // console.log({ selectedUtxo: selectedUtxo.utxo });
     // handle purchase of selected UTXO here
+    const redeemer = Data.to<DataListingRedeemer>('Purchase', DataListingRedeemer);
+    console.log({ redeemer });
+    const tx = await lucid
+      .newTx()
+      // .payToAddress(sellerAddress, {
+      //   lovelace: 10n, //selectedUtxoDatum.price,
+      // })
+      .collectFrom([utxo], redeemer)
+      .attachSpendingValidator(dataListingScript)
+      .addSignerKey(pkh)
+      .complete({ nativeUplc: true });
+    const txId = await signAndSubmitTx(tx);
+    console.log('txId', txId);
   };
 
   return (

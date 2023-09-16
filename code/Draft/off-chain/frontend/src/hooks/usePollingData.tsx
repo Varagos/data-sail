@@ -6,15 +6,16 @@ const usePollingData = (interval: number) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log(`Fetching data`);
       try {
         const response = await fetch(`/api/retrieveHistory`);
         const data = await response.json();
 
-        console.log(data);
+        // console.log(`Fetching data`);
+        // console.log(data);
         const success = data.success;
         setData(data.data);
       } catch (error) {
+        console.log(`Fetching data`);
         console.log(error);
       }
     };
