@@ -21,9 +21,8 @@ import           Plutus.V2.Ledger.Api      (Address, BuiltinData, Datum (Datum),
 import           Plutus.V2.Ledger.Contexts (findDatum, valuePaidTo)
 import           PlutusTx                  (FromData (fromBuiltinData), compile,
                                             unstableMakeIsData)
-import           PlutusTx.Prelude          (Bool (..), BuiltinByteString,
-                                            Eq (..), Integer, Maybe (..),
-                                            Ord ((>=)), filter, traceError,
+import           PlutusTx.Prelude          (Bool, Integer, Maybe (..),
+                                            Ord ((>=)), traceError,
                                             traceIfFalse)
 import qualified Prelude
 import           Utilities                 (wrapValidator, writeValidatorToFile)
@@ -47,10 +46,10 @@ parseDataListingDatum o info = case o of
 -- Datum containing all the relevant information
 data DataListDatum = DataListDatum
     {
-     dataSeller          :: PubKeyHash
-     , dataSellerAddress :: Address
+     dataSeller :: PubKeyHash
+    --  , dataSellerAddress :: Address
     -- , dataOwner  :: Address
-    , price              :: Integer
+    , price     :: Integer
     -- , dataLocation :: BuiltinByteString
     } deriving Prelude.Show
 unstableMakeIsData ''DataListDatum

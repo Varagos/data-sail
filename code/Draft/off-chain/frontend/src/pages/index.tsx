@@ -1,12 +1,8 @@
-import MintNFTButton from '../components/MintNFTButton';
 import { useContext } from 'react';
 import { AppStateContext } from './_app';
-import Oracle from '@/components/Oracle';
 import { ExplorerLink, ExplorerLinkPrime } from '@/components/ExplorerLinks';
-import DeployScripts from '@/components/DeployScripts';
 import { HiUserCircle } from 'react-icons/hi';
 import { IoReloadCircleSharp } from 'react-icons/io5';
-import Stablecoin from '@/components/Stablecoin';
 import { useState } from 'react';
 import { Data, Lucid, fromHex } from 'lucid-cardano';
 import DataConsentComponent from '@/components/DataConsent';
@@ -135,58 +131,10 @@ export default function Home() {
         >
           Buyer
         </button>
-        <button
-          onClick={() => handleClick('oracle')}
-          className={`${
-            isPerson == 'oracle'
-              ? 'bg-zinc-100 text-zinc-800 shadow-[0_5px_0px_0px_rgba(255,251,251,0.6)]'
-              : 'bg-zinc-900 text-zinc-50 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)]'
-          } font-quicksand text-lg font-bold py-3 px-8 rounded-lg active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)] `}
-        >
-          Oracle
-        </button>
-        <button
-          onClick={() => handleClick('owner')}
-          className={`${
-            isPerson == 'owner'
-              ? 'bg-zinc-100 text-zinc-800 shadow-[0_5px_0px_0px_rgba(255,251,251,0.6)]'
-              : 'bg-zinc-900 text-zinc-50 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)]'
-          }  font-quicksand text-lg font-bold py-3 px-8 rounded-lg active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)] `}
-        >
-          Owner
-        </button>
-        <button
-          onClick={() => handleClick('user')}
-          className={`${
-            isPerson == 'user'
-              ? 'bg-zinc-100 text-zinc-800 shadow-[0_5px_0px_0px_rgba(255,251,251,0.6)]'
-              : 'bg-zinc-900 text-zinc-50 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)]'
-          }  font-quicksand text-lg font-bold py-3 px-8 rounded-lg active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)] `}
-        >
-          User
-        </button>
       </div>
 
       {/* ACTIONS SECTION - MAIN CONTAINER(WHITE AND ROUNDED) */}
       <div className="flex flex-col items-center gap-8  h-full py-10 bg-zinc-50 w-4/5 rounded-2xl">
-        {/* ORACLE ACTIONS */}
-        {isPerson == 'oracle' && (
-          <div className="shadow-[0_4px_0px_0px_rgba(0,0,0,0.25)] w-[664px] bg-zinc-50 border border-zinc-600 rounded-xl p-9">
-            <MintNFTButton />
-            <Oracle />
-          </div>
-        )}
-
-        {/* OWNER ACTIONS */}
-        {isPerson == 'owner' && (
-          <div className="shadow-[0_4px_0px_0px_rgba(0,0,0,0.25)] w-[664px] bg-zinc-50 border border-zinc-600 rounded-xl px-9 pb-9">
-            <DeployScripts />
-          </div>
-        )}
-
-        {/* USER ACTIONS */}
-        {isPerson == 'user' && <Stablecoin />}
-
         {
           isPerson === 'seller' && <DataListing />
           // <DataConsentComponent />

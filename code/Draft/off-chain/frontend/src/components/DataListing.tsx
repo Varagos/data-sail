@@ -28,15 +28,16 @@ const COMPILED_MINTING_VALIDATOR_WITHOUT_PARAMS =
 export const DataListingRedeemer = Data.Enum([Data.Literal('Redeem'), Data.Literal('Purchase')]);
 export type DataListingRedeemerType = Data.Static<typeof DataListingRedeemer>;
 
-export const DataListingDatum = Data.Object({
+export const DataListingDatumSchema = Data.Object({
   dataSeller: Data.Bytes(),
-
-  dataSellerAddress: Data.Bytes(),
-  // In lovelace
   price: Data.Integer(),
+
+  // dataSellerAddress: Data.Bytes(),
+  // In lovelace
   // dataLocation: Data.Bytes(),
 });
-export type DataListingDatumType = Data.Static<typeof DataListingDatum>;
+export type DataListingDatumType = Data.Static<typeof DataListingDatumSchema>;
+export const DataListingDatum = DataListingDatumSchema as unknown as DataListingDatumType;
 
 function DataListing() {
   const { appState, setAppState } = useContext(AppStateContext);
@@ -98,8 +99,9 @@ function DataListing() {
     // Convert to hex
     const tokenNameHex = fromText('DataToken');
     // TransactionId, txIndex and tokenName
-    const Params = Data.Tuple([Data.Bytes(), Data.Integer(), Data.Bytes()]);
-    type Params = Data.Static<typeof Params>;
+    const ParamsSchema = Data.Tuple([Data.Bytes(), Data.Integer(), Data.Bytes()]);
+    type Params = Data.Static<typeof ParamsSchema>;
+    const Params = ParamsSchema as unknown as Params;
     const dataTokenPolicy: MintingPolicy = {
       type: 'PlutusV2',
       script: applyParamsToScript<Params>(
@@ -183,7 +185,7 @@ function DataListing() {
     const datum: DataListingDatumType = {
       dataSeller: pkh,
       // probably need to use fromHex here
-      dataSellerAddress: fromText(wAddr),
+      // dataSellerAddress: fromText(wAddr),
       price: BigInt(1_000_000),
       // dataOwner: '123',
       // dataLocation: '123',

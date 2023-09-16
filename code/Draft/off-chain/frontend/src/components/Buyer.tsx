@@ -13,8 +13,9 @@ type UtxoEntry = {
 
 type DataListingUTxOs = Array<{ utxo: UTxO; datum: DataListingDatumType }>;
 
-const DataListingRedeemer = Data.Enum([Data.Literal('Redeem'), Data.Literal('Purchase')]);
-type DataListingRedeemer = Data.Static<typeof DataListingRedeemer>;
+const DataListingRedeemerSchema = Data.Enum([Data.Literal('Redeem'), Data.Literal('Purchase')]);
+type DataListingRedeemer = Data.Static<typeof DataListingRedeemerSchema>;
+const DataListingRedeemer = DataListingRedeemerSchema as unknown as DataListingRedeemer;
 
 function Buyer() {
   const { appState, setAppState } = useContext(AppStateContext);
@@ -66,17 +67,18 @@ function Buyer() {
     if (!lucid) {
       throw new Error('Lucid not initialized');
     }
-    const sellerPubKeyHash = utxoDatum.dataSeller;
-    const sellerAddressHex = utxoDatum.dataSellerAddress;
-    const sellerAddress = toText(sellerAddressHex);
-    // We are misssing the staking credentials to create the address just from the pubkeyhash
-    // Nami and others wallets automatically add the staking credential when creating new wallets
-    console.log({ sellerAddressHex, sellerAddress });
-    console.log({ utxoSellerKeyHash: sellerPubKeyHash });
-    const credentials = lucid.utils.keyHashToCredential(sellerPubKeyHash);
-    console.log({ credentials: credentials.type });
-    const address = lucid.utils.credentialToAddress(credentials);
-    return sellerAddress;
+    return 'addr_test1qqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335jrvsmd2enzlguaf7hqcyt5urk9y5hvjs3erv50da6l2zzq0etu68';
+    // const sellerPubKeyHash = utxoDatum.dataSeller;
+    // const sellerAddressHex = utxoDatum.dataSellerAddress;
+    // const sellerAddress = toText(sellerAddressHex);
+    // // We are misssing the staking credentials to create the address just from the pubkeyhash
+    // // Nami and others wallets automatically add the staking credential when creating new wallets
+    // console.log({ sellerAddressHex, sellerAddress });
+    // console.log({ utxoSellerKeyHash: sellerPubKeyHash });
+    // const credentials = lucid.utils.keyHashToCredential(sellerPubKeyHash);
+    // console.log({ credentials: credentials.type });
+    // const address = lucid.utils.credentialToAddress(credentials);
+    // return sellerAddress;
   };
 
   // {
@@ -100,6 +102,20 @@ correct, but getSellerAddress returns address
 }
    */
 
+  const findSellerAddress = (utxo: UTxO): string => {
+    const { address, txHash, outputIndex } = utxo;
+    console.log({
+      address,
+      txHash,
+      outputIndex,
+    });
+    const tx = `${txHash}#${outputIndex}`;
+    const txComplete = lucid?.fromTx(txHash);
+    console.log(txComplete);
+
+    return txHash;
+  };
+
   const handleBuy = async () => {
     if (!lucid) {
       console.error('Lucid not initialized');
@@ -116,8 +132,8 @@ correct, but getSellerAddress returns address
     const sellerAddress = getSellerAddress(selectedUtxoDatum);
 
     const dataListingAddress = lucid.utils.validatorToAddress(dataListingScript);
-    const utxos = await lucid.utxosAt(dataListingAddress);
-    const utxo = utxos[0];
+    // const utxos = await lucid.utxosAt(dataListingAddress);
+    // const utxo = utxos[0];
     // const dataListingAddr = lucid.utils.validatorToAddress(dataListingScript);
 
     console.log({ sellerAddress });
@@ -125,17 +141,22 @@ correct, but getSellerAddress returns address
     // handle purchase of selected UTXO here
     const redeemer = Data.to<DataListingRedeemer>('Purchase', DataListingRedeemer);
     console.log({ redeemer });
-    const tx = await lucid
-      .newTx()
-      // .payToAddress(sellerAddress, {
-      //   lovelace: 10n, //selectedUtxoDatum.price,
-      // })
-      .collectFrom([utxo], redeemer)
-      .attachSpendingValidator(dataListingScript)
-      .addSignerKey(pkh)
-      .complete({ nativeUplc: true });
-    const txId = await signAndSubmitTx(tx);
-    console.log('txId', txId);
+    try {
+      const tx = await lucid
+        .newTx()
+        .payToAddress(sellerAddress, {
+          lovelace: 10_000_000n, //selectedUtxoDatum.price,
+        })
+        .collectFrom([selectedUtxo.utxo], redeemer)
+        .attachSpendingValidator(dataListingScript)
+        // .addSignerKey(pkh)
+        .complete({ nativeUplc: false });
+
+      const txId = await signAndSubmitTx(tx);
+      console.log('txId', txId);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
