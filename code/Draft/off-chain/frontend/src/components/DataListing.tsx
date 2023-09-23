@@ -31,8 +31,6 @@ export type DataListingRedeemerType = Data.Static<typeof DataListingRedeemer>;
 export const DataListingDatumSchema = Data.Object({
   dataSeller: Data.Bytes(),
   price: Data.Integer(),
-  stakingCredential: Data.
-
   // dataSellerAddress: Data.Bytes(),
   // In lovelace
   // dataLocation: Data.Bytes(),
@@ -182,7 +180,6 @@ function DataListing() {
     console.log(`Locking DataToken under DataListing ${dataListingAddr}`);
 
     const pkh: string = getAddressDetails(wAddr).paymentCredential?.hash || '';
-
     const datum: DataListingDatumType = {
       dataSeller: pkh,
       // probably need to use fromHex here

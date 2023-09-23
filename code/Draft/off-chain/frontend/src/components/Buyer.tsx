@@ -1,6 +1,7 @@
 import { AppStateContext } from '@/pages/_app';
 import { Data, Lucid, Script, UTxO, getAddressDetails, toText } from 'lucid-cardano';
 import { useContext, useEffect, useState } from 'react';
+import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 import { DataListingDatum, DataListingDatumType } from './DataListing';
 import { signAndSubmitTx } from '@/utilities/utilities';
 
@@ -25,23 +26,29 @@ function Buyer() {
 
   async function dataListingUTxOs(lucid: Lucid, dataListingScript: Script): Promise<DataListingUTxOs> {
     const dataListingAddress = lucid.utils.validatorToAddress(dataListingScript);
-    const utxos = await lucid.utxosAt(dataListingAddress);
     const res: DataListingUTxOs = [];
-    for (const utxo of utxos) {
-      const datum = utxo.datum;
-      if (datum) {
-        try {
-          const d = Data.from<DataListingDatumType>(datum, DataListingDatum);
-          res.push({
-            utxo,
-            datum: d,
-          });
-        } catch (err) {
-          // ignore different datum types
+    try {
+      const utxos = await lucid.utxosAt(dataListingAddress);
+      for (const utxo of utxos) {
+        const datum = utxo.datum;
+        if (datum) {
+          try {
+            const d = Data.from<DataListingDatumType>(datum, DataListingDatum);
+            res.push({
+              utxo,
+              datum: d,
+            });
+          } catch (err) {
+            // ignore different datum types
+          }
         }
       }
+      return res;
+    } catch (err) {
+      // Throws if no UTXOs found
+      console.error(err);
+      return res;
     }
-    return res;
   }
   const fetchUtxos = async () => {
     if (!lucid) {
@@ -69,14 +76,16 @@ function Buyer() {
     }
     // return 'addr_test1qqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335jrvsmd2enzlguaf7hqcyt5urk9y5hvjs3erv50da6l2zzq0etu68';
     const sellerPubKeyHash = utxoDatum.dataSeller;
+
     // const sellerAddress = toText(sellerAddressHex);
     // // We are misssing the staking credentials to create the address just from the pubkeyhash
     // // Nami and others wallets automatically add the staking credential when creating new wallets
     // console.log({ sellerAddressHex, sellerAddress });
     // console.log({ utxoSellerKeyHash: sellerPubKeyHash });
-    const credentials = lucid.utils.keyHashToCredential(sellerPubKeyHash);
-    console.log({ credentials: credentials.type });
-    const address = lucid.utils.credentialToAddress(credentials);
+    const paymentCredential = lucid.utils.keyHashToCredential(sellerPubKeyHash);
+    console.log({ credentials: paymentCredential.type });
+    //TODO Look for utxo using blokfrost, and find address that includes this pubkeyhash
+    const address = lucid.utils.credentialToAddress(paymentCredential);
     return address;
   };
 
@@ -99,19 +108,40 @@ correct, but getSellerAddress returns address
 {
     "sellerAddress": "addr_test1vqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335spv85en"
 }
+
+
+WHEN ADDDING STAKE CREDENTIAL:
+{
+    "sellerAddress": "addr_test1qqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335jrvsmd2enzlguaf7hqcyt5urk9y5hvjs3erv50da6l2zzq0etu68"
+}
    */
+  async function fetchTxInfo(txHash: string) {
+    try {
+      const response = await fetch(`/api/getTxInfo?txHash=${txHash}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('An error occurred while fetching the transaction:', error);
+      return null;
+    }
+  }
 
   /**
    * Find using txHash and some provider
    */
-  const findSellerAddress = (utxo: UTxO): string => {
-    const { address, txHash, outputIndex } = utxo;
+  const findSellerAddress = async (lockedUtxo: UTxO): Promise<string> => {
+    const { address, txHash, outputIndex } = lockedUtxo;
     console.log({
       address,
       txHash,
       outputIndex,
     });
-    const tx = `${txHash}#${outputIndex}`;
+    // const tx = `${txHash}#${outputIndex}`;
+    // Tx that locked the utxo, we are trying to find the address that locked it
+    // const utxos = await API.txsUtxos(txHash);
+    const txInfo = await fetchTxInfo(txHash);
+    console.log({ txInfo });
+
     const txComplete = lucid?.fromTx(txHash);
     console.log(txComplete);
 
@@ -134,11 +164,14 @@ correct, but getSellerAddress returns address
     const sellerAddress = getSellerAddress(selectedUtxoDatum);
 
     const dataListingAddress = lucid.utils.validatorToAddress(dataListingScript);
-    // const utxos = await lucid.utxosAt(dataListingAddress);
+    // const utxos = await lucid
     // const utxo = utxos[0];
     // const dataListingAddr = lucid.utils.validatorToAddress(dataListingScript);
 
     console.log({ sellerAddress });
+
+    const updatedAddress = await findSellerAddress(selectedUtxo.utxo);
+    if (1 % 1 === 0) throw new Error('stop');
     // console.log({ selectedUtxo: selectedUtxo.utxo });
     // handle purchase of selected UTXO here
     const redeemer = Data.to<DataListingRedeemer>('Purchase', DataListingRedeemer);

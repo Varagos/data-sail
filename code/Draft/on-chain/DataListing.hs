@@ -11,7 +11,8 @@
 module DataListing where
 
 import           Plutus.V1.Ledger.Value    (adaSymbol, adaToken, valueOf)
-import           Plutus.V2.Ledger.Api      (Address, BuiltinData, Datum (Datum),
+import           Plutus.V2.Ledger.Api      (Address, BuiltinByteString,
+                                            BuiltinData, Datum (Datum),
                                             OutputDatum (NoOutputDatum, OutputDatum, OutputDatumHash),
                                             PubKeyHash,
                                             ScriptContext (scriptContextTxInfo),
@@ -48,7 +49,6 @@ data DataListDatum = DataListDatum
     {
      dataSeller :: PubKeyHash
     --  , dataSellerAddress :: Address
-    -- , dataOwner  :: Address
     , price     :: Integer
     -- , dataLocation :: BuiltinByteString
     } deriving Prelude.Show

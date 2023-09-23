@@ -68,10 +68,10 @@ export default function App({ Component, pageProps }: AppProps) {
 
   const connectLucidAndNami = async () => {
     // const projectId = 'previewsKVSTHsY3c2sWpsRpJRjs9KiOLaSRmht'
-    const blackFrostKey = process.env.NEXT_PUBLIC_BLACKFROST_KEY;
-    console.log({ blackFrostKey });
+    const blockFrostKey = process.env.NEXT_PUBLIC_BLACKFROST_KEY;
+    console.log({ blackFrostKey: blockFrostKey });
     const lucid = await Lucid.new(
-      new Blockfrost('https://cardano-preview.blockfrost.io/api/v0', blackFrostKey),
+      new Blockfrost('https://cardano-preview.blockfrost.io/api/v0', blockFrostKey),
       'Preview'
     );
     if (!window.cardano.nami) {
