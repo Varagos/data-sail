@@ -18,7 +18,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const txInfo = await api.txs(txHash);
-    return res.status(200).json(txInfo);
+    // console.log(txInfo);
+    const txUtxos = await api.txsUtxos(txHash);
+    // console.log(txUtxos);
+    const inputAddress = txUtxos.inputs.map((i) => i.address);
+    const uniqueInputAddress = [...new Set(inputAddress)];
+    return res.status(200).json({ inputAddress: uniqueInputAddress });
+
+    // return res.status(200).json(txInfo);
   } catch (error) {
     return res.status(500).json({ error: 'An error occurred while fetching the transaction' });
   }

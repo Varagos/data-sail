@@ -115,7 +115,7 @@ WHEN ADDDING STAKE CREDENTIAL:
     "sellerAddress": "addr_test1qqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335jrvsmd2enzlguaf7hqcyt5urk9y5hvjs3erv50da6l2zzq0etu68"
 }
    */
-  async function fetchTxInfo(txHash: string) {
+  async function fetchTxInputAddresses(txHash: string) {
     try {
       const response = await fetch(`/api/getTxInfo?txHash=${txHash}`);
       const data = await response.json();
@@ -129,23 +129,29 @@ WHEN ADDDING STAKE CREDENTIAL:
   /**
    * Find using txHash and some provider
    */
-  const findSellerAddress = async (lockedUtxo: UTxO): Promise<string> => {
-    const { address, txHash, outputIndex } = lockedUtxo;
+  const findSellerAddress = async (lockedUtxo: UTxO, pubKeyHash: string): Promise<string> => {
+    const { txHash, outputIndex } = lockedUtxo;
     console.log({
-      address,
       txHash,
       outputIndex,
     });
     // const tx = `${txHash}#${outputIndex}`;
     // Tx that locked the utxo, we are trying to find the address that locked it
     // const utxos = await API.txsUtxos(txHash);
-    const txInfo = await fetchTxInfo(txHash);
-    console.log({ txInfo });
+    const txInfo = await fetchTxInputAddresses(txHash);
+    const inputAddresses: string[] = txInfo.inputAddress;
+    const addressesMatchingKeyHash = inputAddresses.filter(
+      (addr) => getAddressDetails(addr).paymentCredential?.hash === pubKeyHash
+    );
+    if (addressesMatchingKeyHash.length === 0) {
+      // Fallback to address directly from pubkeyhash
+      throw new Error('No addresses found matching the key hash');
+    }
+    // Multiple addresses because of different staking credentials
+    // Return the largest
+    return addressesMatchingKeyHash.sort((a, b) => b.length - a.length)[0];
 
-    const txComplete = lucid?.fromTx(txHash);
-    console.log(txComplete);
-
-    return txHash;
+    // return txHash;
   };
 
   const handleBuy = async () => {
@@ -170,7 +176,8 @@ WHEN ADDDING STAKE CREDENTIAL:
 
     console.log({ sellerAddress });
 
-    const updatedAddress = await findSellerAddress(selectedUtxo.utxo);
+    const updatedAddress = await findSellerAddress(selectedUtxo.utxo, selectedUtxoDatum.dataSeller);
+    console.log({ updatedAddress });
     if (1 % 1 === 0) throw new Error('stop');
     // console.log({ selectedUtxo: selectedUtxo.utxo });
     // handle purchase of selected UTXO here
