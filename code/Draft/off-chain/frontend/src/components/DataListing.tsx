@@ -31,6 +31,7 @@ export type DataListingRedeemerType = Data.Static<typeof DataListingRedeemer>;
 export const DataListingDatumSchema = Data.Object({
   dataSeller: Data.Bytes(),
   price: Data.Integer(),
+  stakingCredential: Data.
 
   // dataSellerAddress: Data.Bytes(),
   // In lovelace

@@ -67,18 +67,17 @@ function Buyer() {
     if (!lucid) {
       throw new Error('Lucid not initialized');
     }
-    return 'addr_test1qqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335jrvsmd2enzlguaf7hqcyt5urk9y5hvjs3erv50da6l2zzq0etu68';
-    // const sellerPubKeyHash = utxoDatum.dataSeller;
-    // const sellerAddressHex = utxoDatum.dataSellerAddress;
+    // return 'addr_test1qqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335jrvsmd2enzlguaf7hqcyt5urk9y5hvjs3erv50da6l2zzq0etu68';
+    const sellerPubKeyHash = utxoDatum.dataSeller;
     // const sellerAddress = toText(sellerAddressHex);
     // // We are misssing the staking credentials to create the address just from the pubkeyhash
     // // Nami and others wallets automatically add the staking credential when creating new wallets
     // console.log({ sellerAddressHex, sellerAddress });
     // console.log({ utxoSellerKeyHash: sellerPubKeyHash });
-    // const credentials = lucid.utils.keyHashToCredential(sellerPubKeyHash);
-    // console.log({ credentials: credentials.type });
-    // const address = lucid.utils.credentialToAddress(credentials);
-    // return sellerAddress;
+    const credentials = lucid.utils.keyHashToCredential(sellerPubKeyHash);
+    console.log({ credentials: credentials.type });
+    const address = lucid.utils.credentialToAddress(credentials);
+    return address;
   };
 
   // {
@@ -102,6 +101,9 @@ correct, but getSellerAddress returns address
 }
    */
 
+  /**
+   * Find using txHash and some provider
+   */
   const findSellerAddress = (utxo: UTxO): string => {
     const { address, txHash, outputIndex } = utxo;
     console.log({
