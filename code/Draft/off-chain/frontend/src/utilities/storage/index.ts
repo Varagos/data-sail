@@ -3,7 +3,7 @@ import { LocalJSONFileStorage } from './fileStorage';
 
 export interface IStorage {
   storeData(data: DataSession | string, id?: StorageIdentifier): Promise<StorageIdentifier>;
-  retrieveData(identifier: StorageIdentifier): Promise<DataSession | string>;
+  retrieveData(identifier: StorageIdentifier): Promise<DataSession | string | null>;
   retrieveAllData(): Promise<Array<DataSession | string>>;
 }
 

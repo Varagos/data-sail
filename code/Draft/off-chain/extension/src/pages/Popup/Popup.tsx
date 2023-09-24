@@ -9,6 +9,7 @@ const Popup = () => {
   >([]);
   // How many days of history to collect
   const [numberOfDays, setNumberOfDays] = useState<number>(7);
+  const [walletAddress, setWalletAddress] = useState('');
 
   const handleClick = (v: Person) => {
     if (v === 'seller') {
@@ -38,8 +39,11 @@ const Popup = () => {
   function buildTypedUrlList() {
     // To look for history items visited in the last week,
     // subtract a week of microseconds from the current time.
-    let microsecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
-    let oneWeekAgo = new Date().getTime() - microsecondsPerWeek;
+    console.log(
+      `collecting history for ${numberOfDays} days ${typeof numberOfDays}`
+    );
+    let millisecondsPerDays = 1000 * 60 * 60 * 24 * numberOfDays;
+    let startTime = new Date().getTime() - millisecondsPerDays;
 
     // Track the number of callbacks from chrome.history.getVisits()
     // that we expect to get.  When it reaches zero, we have all results.
@@ -48,7 +52,7 @@ const Popup = () => {
     chrome.history.search(
       {
         text: '', // Return every history item....
-        startTime: oneWeekAgo, // that was accessed less than one week ago.
+        startTime, // that was accessed less than one week ago.
       },
       function (historyItems) {
         // For each history item, get details on all visits.
@@ -118,6 +122,12 @@ const Popup = () => {
         return b.count - a.count;
       });
 
+      console.log(
+        `Setting visited urls: ${urlArray
+          .slice(0, 10)
+          .map((x) => `${x.url} (${x.count})`)
+          .join(', ')}`
+      );
       setVisitedUrls(urlArray.slice(0, 10));
     };
   }
@@ -126,6 +136,7 @@ const Popup = () => {
     console.log('submitting data');
     postData('http://localhost:3001/api/saveHistory', {
       data: visitedUrls,
+      walletAddr: walletAddress,
     });
   };
 
@@ -135,36 +146,57 @@ const Popup = () => {
       <div className="flex flex-row justify-evenly gap-4 rounded-b-lg bg-zinc-800 w-full p-6">
         <button
           onClick={() => handleSubmitData()}
-          className={`bg-zinc-100 text-zinc-800 shadow-[0_5px_0px_0px_rgba(255,251,251,0.6)] font-quicksand text-lg font-bold py-3 px-8 rounded-lg active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)]`}
-          disabled={visitedUrls.length === 0}
+          className="bg-zinc-100 text-zinc-800 shadow-[0_5px_0px_0px_rgba(255,251,251,0.6)] font-quicksand text-lg font-bold py-3 px-8 rounded-lg active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)]"
+          disabled={visitedUrls.length === 0 || walletAddress === ''}
         >
           Submit Data
         </button>
       </div>
 
       <div className="flex flex-col items-center gap-8 h-full py-10 w-full rounded-2xl px-auto">
-        <div className="flex flex-row items-center gap-4">
-          <label htmlFor="days" className="text-zinc-800">
-            Number of days:
-          </label>
-          <input
-            type="number"
-            id="days"
-            value={numberOfDays}
-            onChange={(e) => setNumberOfDays(Number(e.target.value))}
-            className="w-16 py-2 px-3 border rounded"
-          />
-          <button
-            onClick={buildTypedUrlList}
-            className="bg-zinc-100 text-zinc-800 py-2 px-4 rounded-lg"
-          >
-            Collect History
-          </button>
+        <div className="flex flex-col w-full items-start gap-4">
+          <div className="flex items-center gap-4">
+            <label
+              htmlFor="walletAddress"
+              className="text-zinc-800 w-32 text-right"
+            >
+              Wallet Address:
+            </label>
+            <input
+              type="text"
+              id="walletAddress"
+              value={walletAddress}
+              onChange={(e) => setWalletAddress(e.target.value)}
+              className="w-36 py-2 px-3 border rounded"
+            />
+          </div>
+          <div className="flex items-center gap-4">
+            <label htmlFor="days" className="text-zinc-800 w-32 text-right">
+              Number of days:
+            </label>
+            <input
+              type="number"
+              id="days"
+              value={numberOfDays}
+              onChange={(e) => setNumberOfDays(+Number(e.target.value))}
+              className="w-16 py-2 px-3 border rounded"
+            />
+          </div>
         </div>
+
+        <button
+          onClick={buildTypedUrlList}
+          className="bg-zinc-100 text-zinc-800 py-2 px-4 rounded-lg"
+        >
+          Collect History
+        </button>
 
         <ul className="w-full p-4">
           {visitedUrls.map((item, index) => (
-            <li key={index} className="flex justify-between py-2 border-b">
+            <li
+              key={`${item}:${item.count}`}
+              className="flex justify-between py-2 border-b"
+            >
               <a
                 href={item.url}
                 target="_blank"
@@ -181,5 +213,4 @@ const Popup = () => {
     </main>
   );
 };
-
 export default Popup;

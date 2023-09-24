@@ -194,12 +194,13 @@ function DataListing() {
     const txId = await signAndSubmitTx(tx);
     console.log(`DataToken locked tx: ${txId}`);
   };
+  console.log({ data });
 
   return (
     <div className="text-zinc-800 font-quicksand">
       <div className="shadow-[0_4px_0px_0px_rgba(0,0,0,0.25)] w-[664px] bg-zinc-50 border border-zinc-600 rounded-xl p-9 mb-5">
         <ul className="w-full p-4">
-          {(data?.[0] ?? []).map((item, index) => (
+          {data.map((item, index) => (
             <li key={index} className="flex justify-between py-2 border-b">
               <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 truncate">
                 {item.url}

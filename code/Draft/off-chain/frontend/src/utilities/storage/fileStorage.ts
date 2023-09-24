@@ -22,11 +22,11 @@ export class LocalJSONFileStorage implements IStorage {
     return identifier;
   }
 
-  public async retrieveData(identifier: StorageIdentifier): Promise<DataSession | string> {
+  public async retrieveData(identifier: StorageIdentifier): Promise<DataSession | string | null> {
     const storage = await this.readFromFile();
     const data = storage.get(identifier);
     if (!data) {
-      throw new Error(`Data with identifier ${identifier} not found`);
+      return null;
     }
     return data;
   }
