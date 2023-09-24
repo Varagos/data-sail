@@ -5,7 +5,6 @@ import { HiUserCircle } from 'react-icons/hi';
 import { IoReloadCircleSharp } from 'react-icons/io5';
 import { useState } from 'react';
 import { Data, Lucid, fromHex } from 'lucid-cardano';
-import DataConsentComponent from '@/components/DataConsent';
 import DataListing from '@/components/DataListing';
 import Buyer from '@/components/Buyer';
 
@@ -16,12 +15,12 @@ export default function Home() {
   const {
     lucid,
     wAddr,
-    scPolicyIdHex,
-    scAssetClassHex,
-    oracleWithNftUTxO,
-    oracleAddress,
-    minPercent,
-    txScriptsDeployment,
+    // scPolicyIdHex,
+    // scAssetClassHex,
+    // oracleWithNftUTxO,
+    // oracleAddress,
+    // minPercent,
+    // txScriptsDeployment,
     dataTokenPolicy,
     dataTokenPolicyIdHex,
     dataListingScript,
@@ -73,26 +72,6 @@ export default function Home() {
             value={wAddr ? `${wAddr.substring(0, 15)}...${wAddr.substring(100)}` : ''}
           />
           <ExplorerLink message="Data Token Policy Id in hex" type="policy" value={dataTokenPolicyIdHex || ''} />
-          <ExplorerLink message="Oracle address: " type="address" value={oracleAddress || ''} />
-
-          <ExplorerLink
-            message="Oracle UTxO with NFT: "
-            type="tx"
-            value={oracleWithNftUTxO?.txHash ? `${oracleWithNftUTxO?.txHash}#${oracleWithNftUTxO?.outputIndex}` : ''}
-          />
-          <ExplorerLinkPrime
-            message="Oracle's Datum (Price of ADA in cents): "
-            type="tx"
-            link={oracleWithNftUTxO?.txHash ? oracleWithNftUTxO?.txHash : 'No TxHash'}
-            value={oracleWithNftUTxO?.datum ? Data.from(oracleWithNftUTxO?.datum).toString() : ''}
-          />
-          <ExplorerLink
-            message="Tx that deployed the reference scripts: "
-            type="tx"
-            value={txScriptsDeployment || ''}
-          />
-          <ExplorerLink message="Stablecoin PolicyId in Hex:" type="policy" value={scPolicyIdHex || ''} />
-          <ExplorerLink message="Stablecoin AssetClass in Hex:" type="asset" value={scAssetClassHex || ''} />
 
           {/* Added by me */}
           <ExplorerLink
@@ -100,11 +79,6 @@ export default function Home() {
             type="address"
             value={lucid?.utils.validatorToAddress(dataListingScript) || ''}
           />
-
-          <div className="font-quicksand h-16 w-full overflow-hidden">
-            <p className=" bg-zinc-800  text-base text-zinc-100 h-8 pt-[6px] pl-2">Depoyed with Minimum Locked % of:</p>{' '}
-            {minPercent}
-          </div>
         </div>
       </div>
 

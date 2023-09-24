@@ -14,30 +14,15 @@ export class LocalJSONFileStorage implements IStorage {
     this.filePath = path.resolve(dataPath, fileName);
   }
 
-  private async readFromFile(): Promise<Map<StorageIdentifier, DataSession>> {
-    try {
-      const fileContent = await fs.readFile(this.filePath, 'utf8');
-      const jsonObject = JSON.parse(fileContent);
-      return new Map(Object.entries(jsonObject));
-    } catch (error) {
-      return new Map();
-    }
-  }
-
-  public async storeData(data: DataSession): Promise<StorageIdentifier> {
-    const identifier = Date.now().toString();
+  public async storeData(data: DataSession | string, id?: StorageIdentifier): Promise<StorageIdentifier> {
+    const identifier = id || Date.now().toString();
     const storage = await this.readFromFile();
     storage.set(identifier, data);
     await this.writeToFile(storage);
     return identifier;
   }
-  private async writeToFile(storage: Map<StorageIdentifier, DataSession>): Promise<void> {
-    const jsonObject = Object.fromEntries(storage);
-    const fileContent = JSON.stringify(jsonObject, null, 2);
-    await fs.writeFile(this.filePath, fileContent, 'utf8');
-  }
 
-  public async retrieveData(identifier: StorageIdentifier): Promise<DataSession> {
+  public async retrieveData(identifier: StorageIdentifier): Promise<DataSession | string> {
     const storage = await this.readFromFile();
     const data = storage.get(identifier);
     if (!data) {
@@ -46,7 +31,7 @@ export class LocalJSONFileStorage implements IStorage {
     return data;
   }
 
-  public async retrieveAllData(): Promise<DataSession[]> {
+  public async retrieveAllData(): Promise<Array<DataSession | string>> {
     const storage = await this.readFromFile();
     // Here we ensure that the first item is always the most recent one for simplicity
     const sortedData = Array.from(storage.entries())
@@ -54,5 +39,20 @@ export class LocalJSONFileStorage implements IStorage {
       .map((entry) => entry[1]); // Extract the values
     return sortedData;
     // return Array.from(storage.values());
+  }
+
+  private async readFromFile(): Promise<Map<StorageIdentifier, DataSession | string>> {
+    try {
+      const fileContent = await fs.readFile(this.filePath, 'utf8');
+      const jsonObject = JSON.parse(fileContent);
+      return new Map(Object.entries(jsonObject));
+    } catch (error) {
+      return new Map();
+    }
+  }
+  private async writeToFile(storage: Map<StorageIdentifier, DataSession | string>): Promise<void> {
+    const jsonObject = Object.fromEntries(storage);
+    const fileContent = JSON.stringify(jsonObject, null, 2);
+    await fs.writeFile(this.filePath, fileContent, 'utf8');
   }
 }

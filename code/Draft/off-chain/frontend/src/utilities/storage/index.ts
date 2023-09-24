@@ -2,9 +2,9 @@ import { DataSession, StorageIdentifier } from '@/types';
 import { LocalJSONFileStorage } from './fileStorage';
 
 export interface IStorage {
-  storeData(data: DataSession): Promise<StorageIdentifier>;
-  retrieveData(identifier: StorageIdentifier): Promise<DataSession>;
-  retrieveAllData(): Promise<DataSession[]>;
+  storeData(data: DataSession | string, id?: StorageIdentifier): Promise<StorageIdentifier>;
+  retrieveData(identifier: StorageIdentifier): Promise<DataSession | string>;
+  retrieveAllData(): Promise<Array<DataSession | string>>;
 }
 
 const storage = new LocalJSONFileStorage('data.json');

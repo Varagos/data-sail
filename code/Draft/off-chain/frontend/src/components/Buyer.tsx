@@ -167,18 +167,12 @@ WHEN ADDDING STAKE CREDENTIAL:
       return;
     }
     const selectedUtxoDatum = selectedUtxo.datum;
-    const sellerAddress = getSellerAddress(selectedUtxoDatum);
+    // const sellerAddress = getSellerAddress(selectedUtxoDatum);
+    // const dataListingAddress = lucid.utils.validatorToAddress(dataListingScript);
+    // console.log({ sellerAddress });
 
-    const dataListingAddress = lucid.utils.validatorToAddress(dataListingScript);
-    // const utxos = await lucid
-    // const utxo = utxos[0];
-    // const dataListingAddr = lucid.utils.validatorToAddress(dataListingScript);
-
+    const sellerAddress = await findSellerAddress(selectedUtxo.utxo, selectedUtxoDatum.dataSeller);
     console.log({ sellerAddress });
-
-    const updatedAddress = await findSellerAddress(selectedUtxo.utxo, selectedUtxoDatum.dataSeller);
-    console.log({ updatedAddress });
-    if (1 % 1 === 0) throw new Error('stop');
     // console.log({ selectedUtxo: selectedUtxo.utxo });
     // handle purchase of selected UTXO here
     const redeemer = Data.to<DataListingRedeemer>('Purchase', DataListingRedeemer);

@@ -25,26 +25,26 @@ export type AppState = {
   lucid?: Lucid;
   wAddr?: Address;
   // NFT Policy
-  nftPolicyIdHex?: PolicyId;
-  nftTokenNameHex?: string;
-  nftAssetClassHex?: Unit;
-  nftPolicy?: MintingPolicy;
-  // Stablecoin Policy
-  scPolicyIdHex?: PolicyId;
-  scTokenNameHex?: string;
-  scAssetClassHex?: Unit;
-  scPolicy?: MintingPolicy;
-  minPercent?: number;
-  mintingPolRefScrUTxO?: UTxO;
-  mintingPolRefScrUTxORef?: string;
-  // Oracle
-  oracleScript?: SpendingValidator;
-  oracleScriptHash?: ScriptHash;
-  oracleAddress?: Address;
-  oracleWithNftUTxO?: UTxO;
-  oracleUtxoWithNFTRef?: string;
-  // Reference Scripts
-  txScriptsDeployment?: TxHash;
+  // nftPolicyIdHex?: PolicyId;
+  // nftTokenNameHex?: string;
+  // nftAssetClassHex?: Unit;
+  // nftPolicy?: MintingPolicy;
+  // // Stablecoin Policy
+  // scPolicyIdHex?: PolicyId;
+  // scTokenNameHex?: string;
+  // scAssetClassHex?: Unit;
+  // scPolicy?: MintingPolicy;
+  // minPercent?: number;
+  // mintingPolRefScrUTxO?: UTxO;
+  // mintingPolRefScrUTxORef?: string;
+  // // Oracle
+  // oracleScript?: SpendingValidator;
+  // oracleScriptHash?: ScriptHash;
+  // oracleAddress?: Address;
+  // oracleWithNftUTxO?: UTxO;
+  // oracleUtxoWithNFTRef?: string;
+  // // Reference Scripts
+  // txScriptsDeployment?: TxHash;
 
   // Added by ME
   dataTokenPolicyIdHex?: PolicyId;
