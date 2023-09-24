@@ -22,4 +22,8 @@ export class InMemoryFileStorage implements IStorage {
   public async retrieveAllData(): Promise<DataSession[]> {
     return Array.from(this.storage.values());
   }
+
+  public async deleteData(identifier: string): Promise<void> {
+    this.storage.delete(identifier);
+  }
 }

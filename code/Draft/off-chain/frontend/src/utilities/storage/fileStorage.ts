@@ -14,6 +14,12 @@ export class LocalJSONFileStorage implements IStorage {
     this.filePath = path.resolve(dataPath, fileName);
   }
 
+  public async deleteData(identifier: string): Promise<void> {
+    const storage = await this.readFromFile();
+    storage.delete(identifier);
+    await this.writeToFile(storage);
+  }
+
   public async storeData(data: DataSession | string, id?: StorageIdentifier): Promise<StorageIdentifier> {
     const identifier = id || Date.now().toString();
     const storage = await this.readFromFile();

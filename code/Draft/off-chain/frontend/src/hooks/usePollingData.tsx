@@ -17,14 +17,19 @@ const usePollingData = (interval: number) => {
         }
         const response = await fetch(`/api/retrieveHistory?identifier=${wAddr}`);
         const data = await response.json();
-        console.log('[usePollingData] Fetching data');
+        if (!response.ok) {
+          // Probably 404 - no data found
+          // console.log(`[usePollingData] Error fetching data: ${data.message}`);
+          return;
+        }
+        // console.log('[usePollingData] Fetching data');
 
-        console.log(`Fetching data`);
-        console.log(data);
+        // console.log(`Fetching data`);
+        // console.log(data);
         setData(data.data);
       } catch (error) {
         console.log(`[usePollingData] Error fetching data`);
-        console.log(error);
+        // console.log(error);
       }
     };
 

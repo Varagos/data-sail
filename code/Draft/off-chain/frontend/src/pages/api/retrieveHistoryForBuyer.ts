@@ -1,9 +1,15 @@
-// pages/api/decrypt.js
+// pages/api/retrieveHistoryForBuyer.ts
 
 import { decrypt } from '@/utilities/encryption';
 import crypto from 'crypto';
+import { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(req, res) {
+/**
+ * Improvements:
+ * - Authorization, demand owner of token sends a signed nonce timestamped
+ * (we can validate the token's wallet owner server side)
+ */
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).end();
   }

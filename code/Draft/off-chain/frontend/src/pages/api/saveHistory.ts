@@ -1,9 +1,10 @@
 // pages/api/saveHistory.js
+import { NextApiRequest, NextApiResponse } from 'next';
 import { encrypt } from '@/utilities/encryption';
 import { storage } from '@/utilities/storage/index';
 
 // Gets invoked by the extension, passing the data and wallet address associated with the data
-const saveHistory = async (req, res) => {
+const saveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
     return res.status(405).end();
   }
