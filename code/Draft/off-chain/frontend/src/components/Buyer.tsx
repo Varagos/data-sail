@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from 'react';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 import { DataListingDatum, DataListingDatumType } from './DataListing';
 import { signAndSubmitTx } from '@/utilities/utilities';
+import PostBuyComponent from './PostBuyComponent';
 
 type UtxoEntry = {
   id: string;
@@ -18,11 +19,21 @@ const DataListingRedeemerSchema = Data.Enum([Data.Literal('Redeem'), Data.Litera
 type DataListingRedeemer = Data.Static<typeof DataListingRedeemerSchema>;
 const DataListingRedeemer = DataListingRedeemerSchema as unknown as DataListingRedeemer;
 
+export enum BuyStatus {
+  Initiating,
+  Waiting,
+  Completed,
+  DataReady,
+}
+
 function Buyer() {
   const { appState, setAppState } = useContext(AppStateContext);
   const { lucid, wAddr, dataTokenPolicyIdHex, dataListingScript } = appState;
   const [utxos, setUtxos] = useState<UtxoEntry[]>([]);
   const [selectedUtxo, setSelectedUtxo] = useState<UtxoEntry | null>(null);
+
+  const [buyStatus, setBuyStatus] = useState<BuyStatus>(BuyStatus.Initiating);
+  const [tokenAssetClass, setTokenAssetClass] = useState<string>('');
 
   async function dataListingUTxOs(lucid: Lucid, dataListingScript: Script): Promise<DataListingUTxOs> {
     const dataListingAddress = lucid.utils.validatorToAddress(dataListingScript);
@@ -154,7 +165,19 @@ WHEN ADDDING STAKE CREDENTIAL:
     // return txHash;
   };
 
+  const getUtxoLockedTokenAssetClass = (utxo: UTxO): string => {
+    const assets = utxo.assets;
+    let assetClasses = Object.keys(assets);
+    // filter out locked ada token
+    assetClasses = assetClasses.filter((assetClass) => assetClass !== 'lovelace');
+    if (assetClasses.length !== 1) {
+      throw new Error('UTXO has more than one asset');
+    }
+    return assetClasses[0];
+  };
+
   const handleBuy = async () => {
+    setBuyStatus(BuyStatus.Initiating);
     if (!lucid) {
       console.error('Lucid not initialized');
       return;
@@ -173,10 +196,17 @@ WHEN ADDDING STAKE CREDENTIAL:
 
     const sellerAddress = await findSellerAddress(selectedUtxo.utxo, selectedUtxoDatum.dataSeller);
     console.log({ sellerAddress });
+    const tokenAssetClass = getUtxoLockedTokenAssetClass(selectedUtxo.utxo);
+    // Add a download button using the tokenAssetClass (fetch the data, and have them ready for download)
+    // make the button available when token gets detected in user's wallet
+    console.log({ tokenAssetClass });
+
     // console.log({ selectedUtxo: selectedUtxo.utxo });
     // handle purchase of selected UTXO here
     const redeemer = Data.to<DataListingRedeemer>('Purchase', DataListingRedeemer);
     console.log({ redeemer });
+    setBuyStatus(BuyStatus.Waiting);
+    setTokenAssetClass(tokenAssetClass);
     try {
       const tx = await lucid
         .newTx()
@@ -190,7 +220,9 @@ WHEN ADDDING STAKE CREDENTIAL:
 
       const txId = await signAndSubmitTx(tx);
       console.log('txId', txId);
+      setBuyStatus(BuyStatus.Completed);
     } catch (err) {
+      setBuyStatus(BuyStatus.Initiating);
       console.error(err);
     }
   };
@@ -235,6 +267,7 @@ WHEN ADDDING STAKE CREDENTIAL:
           >
             Buy Selected UTXO
           </button>
+          <PostBuyComponent buyStatus={buyStatus} tokenAssetClass={tokenAssetClass} setBuyStatus={setBuyStatus} />
         </div>
       </div>
     </div>

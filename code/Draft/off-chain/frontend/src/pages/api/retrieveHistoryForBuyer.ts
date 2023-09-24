@@ -1,6 +1,8 @@
 // pages/api/retrieveHistoryForBuyer.ts
 
+import { DataSession } from '@/types';
 import { decrypt } from '@/utilities/encryption';
+import { storage } from '@/utilities/storage/index';
 import crypto from 'crypto';
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -14,23 +16,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).end();
   }
 
-  const { encryptedData } = req.body;
+  const { tokenAssetClass, wAddr } = req.body;
+  // TODO check that wAddr indeed contains that tokenAssetClass and using signed nonce timestamped, that client is owner of wAddr
 
-  if (!encryptedData) {
-    return res.status(400).json({ error: 'Encrypted data is required' });
+  if (!tokenAssetClass || !wAddr) {
+    return res.status(400).json({ error: 'Token asset class and wallet address are required' });
   }
 
-  const decryptionKey = process.env.ENCRYPTION_KEY;
-  if (!decryptionKey) {
+  const result = await storage.retrieveData(tokenAssetClass as string);
+
+  if (!result) {
+    return res.status(404).json({ error: 'No data found for the given token asset class' });
+  }
+
+  const encryptionKey = process.env.ENCRYPTION_KEY;
+  if (!encryptionKey) {
     console.error('Encryption key is missing');
     return res.status(500).json({ error: 'Internal server error' });
   }
-
-  try {
-    const decryptedData = decrypt(encryptedData, decryptionKey);
-    res.status(200).json({ decryptedData });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'An error occurred while decrypting the data' });
+  if (typeof result !== 'string') {
+    console.error('Stored data are not encrypted');
+    return res.status(500).json({ error: 'Internal server error' });
   }
+  const decryptedData = decrypt(result, encryptionKey);
+  // console.log('decryptedData', decryptedData);
+  const dataSession: DataSession = JSON.parse(decryptedData);
+  console.log({ dataSession });
+  // console.log('Retrieving history result');
+  res.status(200).json({ success: true, data: dataSession });
 }
