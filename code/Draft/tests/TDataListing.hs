@@ -48,7 +48,7 @@ main = do
 ----------------------------- HELPER FUNCTIONS/INSTANCES/TYPES ------------------------------------
 
 scToken :: FakeCoin
-scToken = FakeCoin "Super-Cool-Token"
+scToken = FakeCoin "DataToken"
 
 type DataListingScript = TypedValidator OnChain.DataListDatum OnChain.DataListingRedeemer
 
@@ -69,26 +69,24 @@ lockingTx ph pr usp val=
     [
       userSpend usp, -- This spend the user inputs, and send the change back to the user
       payToScript dataListingScript datum val
-
     ]
   where
     datum = HashDatum (OnChain.DataListDatum ph pr)
 
 consumingTx :: PubKeyHash -> PubKeyHash -> UserSpend -> Value -> TxOutRef -> Value -> OnChain.DataListDatum -> Tx
-consumingTx buyer benef buyerSpending buyerPaying txOutRef tokensVal dat =
+consumingTx buyer seller buyerSpending buyerPaying txOutRef tokensVal dat =
   mconcat
     [
-     -- TODO Fix the redeemer
      spendScript dataListingScript txOutRef OnChain.Purchase dat
     , payToKey buyer tokensVal -- Where to pay the unlocked value
-    -- WE ALSO NEED TO PAY THE BENEFICIARY
+    -- We also need to pay the seller
     , userSpend buyerSpending
-    , payToKey benef buyerPaying
+    , payToKey seller buyerPaying
     ]
 
 
 doubleConsumingTx ::PubKeyHash -> PubKeyHash -> UserSpend -> Value -> (TxOutRef, TxOutRef) -> Value -> OnChain.DataListDatum -> Tx
-doubleConsumingTx buyer benef buyerSpending buyerPaying (txOutRef1,txOutRef2) tokensVal dat =
+doubleConsumingTx buyer seller buyerSpending buyerPaying (txOutRef1,txOutRef2) tokensVal dat =
   mconcat
     [
       spendScript dataListingScript txOutRef1 OnChain.Purchase dat
@@ -97,17 +95,17 @@ doubleConsumingTx buyer benef buyerSpending buyerPaying (txOutRef1,txOutRef2) to
       , payToKey buyer tokensVal
       -- What the buyer is paying
       ,userSpend buyerSpending
-      , payToKey benef buyerPaying
+      , payToKey seller buyerPaying
     ]
 
 ---------------------------------------------------------------------------------------------------
 -------------------------------------- TESTING SPENDING -------------------------------------------
 
 normalSpending :: Int -> Integer -> Integer -> Run ()
-normalSpending benefIndex askedPrice paidPrice = do
+normalSpending sellerIndex askedPrice paidPrice = do
   users <- setupUsers
   let [u1, u2] = users
-  let benef = users !! benefIndex :: PubKeyHash
+  let seller = users !! sellerIndex :: PubKeyHash
   -- User 1 locks his tokens
   let tokenVal = fakeValue scToken 100
   sp <- spend u1 tokenVal
@@ -121,7 +119,7 @@ normalSpending benefIndex askedPrice paidPrice = do
 
   let payingVal = adaValue paidPrice
   u2_sp <- spend u2 payingVal
-  submitTx u2 $ consumingTx u2 benef u2_sp payingVal ref (txOutValue out) (OnChain.DataListDatum u1 askedPrice)
+  submitTx u2 $ consumingTx u2 seller u2_sp payingVal ref (txOutValue out) (OnChain.DataListDatum u1 askedPrice)
 
   isOk <- noErrors
   vals <- mapM valueAt users          -- read user values
