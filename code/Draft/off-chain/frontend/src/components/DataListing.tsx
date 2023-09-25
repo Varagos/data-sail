@@ -172,9 +172,11 @@ function DataListing() {
     console.log(`Locking DataToken under DataListing ${dataListingAddr}`);
 
     const pkh: string = getAddressDetails(wAddr).paymentCredential?.hash || '';
+    // Lovelace
+    const price = BigInt(askingPrice ? askingPrice * 1_000_000 : 1_000_000);
     const datum: DataListingDatumType = {
       dataSeller: pkh,
-      price: BigInt(1_000_000),
+      price,
     };
     console.log('created datum');
 
@@ -198,38 +200,31 @@ function DataListing() {
     <div className="text-zinc-800 font-quicksand">
       <div className="shadow-[0_4px_0px_0px_rgba(0,0,0,0.25)] w-[664px] bg-zinc-50 border border-zinc-600 rounded-xl p-9 mb-5">
         <ul className="w-full p-4">
-          {data?.map((item, index) => (
-            <li key={index} className="flex justify-between py-2 border-b">
-              <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 truncate">
-                {item.url}
-              </a>
-              <span className="text-zinc-800">Visits: {item.count}</span>
-            </li>
-          ))}
+          {data && data.length > 0 ? (
+            data.map((item, index) => (
+              <li key={index} className="flex justify-between py-2 border-b">
+                <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 truncate">
+                  {item.url}
+                </a>
+                <span className="text-zinc-800">Visits: {item.count}</span>
+              </li>
+            ))
+          ) : (
+            <p>No data found, capture using the browser extension</p>
+          )}
         </ul>
-        {/* <div className="flex flex-col mb-2">
-          <ButtonDarkFullWidth clickHandler={generateData}>Generate Random Data</ButtonDarkFullWidth>
-          <p className="my-2">{randomData}</p>
-        </div> */}
-        <div className="flex flex-col mb-2">
-          <ButtonDarkFullWidth clickHandler={handleDataSelling}>Mint Data Token</ButtonDarkFullWidth>
-          <div className="flex justify-between items-center mt-2">
-            <p className="my-2 flex-grow">{encryptionKey}</p>
-            <button
-              onClick={hideKey}
-              className="w-16 rounded-lg p-3 text-zinc-50 bg-zinc-800 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)] font-quicksand font-bold active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)]"
-            >
-              Hide Key
-            </button>
-          </div>
+
+        <div className="flex flex-col mb-2 mb-16">
+          <ButtonDarkFullWidth clickHandler={handleDataSelling} disabled={!data || data.length === 0}>
+            Mint Data Token
+          </ButtonDarkFullWidth>
         </div>
-        {/* Add an input for asking price */}
         <div className="flex flex-col mb-2">
           <input
             type="text"
-            placeholder="Asking Price"
+            placeholder="Asking Price(Amount in ADA)"
             className="w-full rounded-lg p-3 text-zinc-50 bg-zinc-800 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)] font-quicksand font-bold active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)]"
-            onChange={(e) => setAskingPrice(parseInt(e.target.value))}
+            onChange={(e) => setAskingPrice(+e.target.value)}
           />
         </div>
         <div className="flex flex-col mb-2">

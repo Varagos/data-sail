@@ -24,29 +24,7 @@ export type AppState = {
   // Global
   lucid?: Lucid;
   wAddr?: Address;
-  // NFT Policy
-  // nftPolicyIdHex?: PolicyId;
-  // nftTokenNameHex?: string;
-  // nftAssetClassHex?: Unit;
-  // nftPolicy?: MintingPolicy;
-  // // Stablecoin Policy
-  // scPolicyIdHex?: PolicyId;
-  // scTokenNameHex?: string;
-  // scAssetClassHex?: Unit;
-  // scPolicy?: MintingPolicy;
-  // minPercent?: number;
-  // mintingPolRefScrUTxO?: UTxO;
-  // mintingPolRefScrUTxORef?: string;
-  // // Oracle
-  // oracleScript?: SpendingValidator;
-  // oracleScriptHash?: ScriptHash;
-  // oracleAddress?: Address;
-  // oracleWithNftUTxO?: UTxO;
-  // oracleUtxoWithNFTRef?: string;
-  // // Reference Scripts
-  // txScriptsDeployment?: TxHash;
 
-  // Added by ME
   dataTokenPolicyIdHex?: PolicyId;
   dataTokenNameHex?: string;
   dataTokenAssetClassHex?: Unit;
@@ -67,9 +45,8 @@ export default function App({ Component, pageProps }: AppProps) {
   const [appState, setAppState] = useState<AppState>(initialAppState);
 
   const connectLucidAndNami = async () => {
-    // const projectId = 'previewsKVSTHsY3c2sWpsRpJRjs9KiOLaSRmht'
     const blockFrostKey = process.env.NEXT_PUBLIC_BLACKFROST_KEY;
-    console.log({ blackFrostKey: blockFrostKey });
+    // console.log({ blockFrostKey });
     const lucid = await Lucid.new(
       new Blockfrost('https://cardano-preview.blockfrost.io/api/v0', blockFrostKey),
       'Preview'
@@ -91,6 +68,7 @@ export default function App({ Component, pageProps }: AppProps) {
     if (appState.lucid) return;
     connectLucidAndNami();
   }, [appState]);
+
   return (
     <AppStateContext.Provider value={{ appState, setAppState }}>
       <Component {...pageProps} />

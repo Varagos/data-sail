@@ -1,4 +1,5 @@
 import { useContext, useEffect } from 'react';
+import { MdFileDownload } from 'react-icons/md';
 import { BuyStatus } from './Buyer';
 import { AppStateContext } from '@/pages/_app';
 import { retrieveHistoryForBuyer } from '@/utilities/api';
@@ -45,11 +46,12 @@ function PostBuyComponent({
       throw new Error('No wallet address');
     }
     const result = await retrieveHistoryForBuyer(tokenAssetClass, wAddr);
+    console.log({ retrivedHistoryForBuyer: result });
     saveTemplateAsFile('data.json', result);
   };
 
   const saveTemplateAsFile = (filename: string, dataObjToWrite: Record<string, any>) => {
-    const blob = new Blob([JSON.stringify(dataObjToWrite)], { type: 'text/json' });
+    const blob = new Blob([JSON.stringify(dataObjToWrite, null, 2)], { type: 'text/json' });
     const link = document.createElement('a');
 
     link.download = filename;
@@ -67,10 +69,15 @@ function PostBuyComponent({
   };
 
   return (
-    <div>
+    <div className="p-4 rounded bg-zinc-700 text-white font-quicksand">
       {buyStatus === BuyStatus.Waiting && <p>Waiting for transaction to complete...</p>}
       {buyStatus === BuyStatus.Completed && <p>Transaction completed. Checking for token...</p>}
-      {buyStatus === BuyStatus.DataReady && <button onClick={downloadData}>Download Data</button>}
+      {buyStatus === BuyStatus.DataReady && (
+        <button onClick={downloadData} className="flex items-center px-4 py-2 rounded bg-zinc-800 text-white">
+          <MdFileDownload className="mr-2" />
+          Download Data
+        </button>
+      )}
     </div>
   );
 }
