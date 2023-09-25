@@ -34,17 +34,12 @@ common common-all-tests
 library
     import:             common-all
     hs-source-dirs:     on-chain
-                      , homework
-    exposed-modules:    Homework1
-                        Homework2
-                        ParameterizedVesting
-                        Vesting
-                        DataListing
+    exposed-modules:    DataListing
                         DataTokenMinting
 
 test-suite draft-homework
     import:             common-all-tests
     type:               exitcode-stdio-1.0
-    main-is:            THomework.hs
+    main-is:            TDataListing.hs
     hs-source-dirs:     tests
     build-depends:      draft
