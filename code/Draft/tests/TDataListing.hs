@@ -50,10 +50,10 @@ main = do
 scToken :: FakeCoin
 scToken = FakeCoin "Super-Cool-Token"
 
-type DataListingScript = TypedValidator OnChain.DataListDatum ()
+type DataListingScript = TypedValidator OnChain.DataListDatum OnChain.DataListingRedeemer
 
-swapScript :: DataListingScript
-swapScript = TypedValidator $ toV2 OnChain.validator
+dataListingScript :: DataListingScript
+dataListingScript = TypedValidator $ toV2 OnChain.validator
 
 -- | alocate 2 users with 1000 lovelaces each
 setupUsers :: Run [PubKeyHash]
@@ -68,7 +68,7 @@ lockingTx ph pr usp val=
   mconcat
     [
       userSpend usp, -- This spend the user inputs, and send the change back to the user
-      payToScript swapScript datum val
+      payToScript dataListingScript datum val
 
     ]
   where
@@ -78,7 +78,8 @@ consumingTx :: PubKeyHash -> PubKeyHash -> UserSpend -> Value -> TxOutRef -> Val
 consumingTx buyer benef buyerSpending buyerPaying txOutRef tokensVal dat =
   mconcat
     [
-     spendScript swapScript txOutRef () dat
+     -- TODO Fix the redeemer
+     spendScript dataListingScript txOutRef OnChain.Purchase dat
     , payToKey buyer tokensVal -- Where to pay the unlocked value
     -- WE ALSO NEED TO PAY THE BENEFICIARY
     , userSpend buyerSpending
@@ -90,9 +91,9 @@ doubleConsumingTx ::PubKeyHash -> PubKeyHash -> UserSpend -> Value -> (TxOutRef,
 doubleConsumingTx buyer benef buyerSpending buyerPaying (txOutRef1,txOutRef2) tokensVal dat =
   mconcat
     [
-      spendScript swapScript txOutRef1 () dat
+      spendScript dataListingScript txOutRef1 OnChain.Purchase dat
       , payToKey buyer tokensVal
-      , spendScript swapScript txOutRef2 () dat
+      , spendScript dataListingScript txOutRef2 OnChain.Purchase dat
       , payToKey buyer tokensVal
       -- What the buyer is paying
       ,userSpend buyerSpending
@@ -114,7 +115,7 @@ normalSpending benefIndex askedPrice paidPrice = do
   submitTx u1 $ lockingTx u1 askedPrice sp tokenVal
 
   -- Now time for user 2 to consume them
-  scriptUtxos <- utxoAt swapScript
+  scriptUtxos <- utxoAt dataListingScript
   let [(ref, out)] = scriptUtxos -- We have only locked 1 utxo
 
 
@@ -146,7 +147,7 @@ doubleSpending = do
   sp2 <- spend u1 token
   submitTx u1 $ lockingTx u1 400 sp2 token
   --
-  scriptsUtxos <- utxoAt swapScript
+  scriptsUtxos <- utxoAt dataListingScript
   let [(ref1, out1), (ref2, out2)] = scriptsUtxos
 
   let buyerPaying = adaValue 400
