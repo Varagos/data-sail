@@ -11,20 +11,25 @@
 module DataListing where
 
 import           Plutus.V1.Ledger.Value    (adaSymbol, adaToken, valueOf)
-import           Plutus.V2.Ledger.Api      (Address, BuiltinByteString,
-                                            BuiltinData, Datum (Datum),
+import           Plutus.V2.Ledger.Api      (Address (addressCredential),
+                                            BuiltinData,
+                                            Credential (PubKeyCredential, ScriptCredential),
+                                            Datum (Datum),
                                             OutputDatum (NoOutputDatum, OutputDatum, OutputDatumHash),
                                             PubKeyHash,
                                             ScriptContext (scriptContextTxInfo),
-                                            TxInfo (txInfoOutputs),
-                                            TxOut (txOutAddress, txOutValue),
-                                            Validator, Value, mkValidatorScript)
-import           Plutus.V2.Ledger.Contexts (findDatum, valuePaidTo)
+                                            TxInInfo (txInInfoResolved),
+                                            TxInfo (txInfoInputs),
+                                            TxOut (txOutAddress), Validator,
+                                            ValidatorHash, Value,
+                                            mkValidatorScript)
+import           Plutus.V2.Ledger.Contexts (findDatum, ownHash, valuePaidTo)
 import           PlutusTx                  (FromData (fromBuiltinData), compile,
                                             unstableMakeIsData)
-import           PlutusTx.Prelude          (Bool, Integer, Maybe (..),
-                                            Ord ((>=)), traceError,
-                                            traceIfFalse)
+import           PlutusTx.Prelude          (Bool (False), Eq ((==)), Integer,
+                                            Maybe (..), Ord ((>=)), filter,
+                                            length, map, traceError,
+                                            traceIfFalse, ($), (&&), (.))
 import qualified Prelude
 import           Utilities                 (wrapValidator, writeValidatorToFile)
 
@@ -54,7 +59,7 @@ data DataListDatum = DataListDatum
     } deriving Prelude.Show
 unstableMakeIsData ''DataListDatum
 
--- We can lock or redeem our own collateral or liquidate someone else's
+-- We can redeem our own token or purchase someone else's
 data DataListingRedeemer = Redeem | Purchase
 unstableMakeIsData ''DataListingRedeemer
 
@@ -62,36 +67,19 @@ unstableMakeIsData ''DataListingRedeemer
 {-# INLINABLE mkValidator #-}
 mkValidator :: DataListDatum -> DataListingRedeemer -> ScriptContext -> Bool
 mkValidator dat r ctx = case r of
-    Purchase -> traceIfFalse "amount required not paid to owner" buyerHasPaidSeller
+    Purchase -> traceIfFalse "Amount required not paid to owner" buyerHasPaidSeller &&
+        traceIfFalse "You must consume only one utxo" consumesOnlyOneUtxo
     Redeem    -> traceError "Redeem not implemented"
-        -- traceIfFalse "data owner's signature missing" checkSignedByCollOwner &&
-        --          traceIfFalse "burned stablecoin amount mismatch" checkStablecoinAmount
+        -- traceIfFalse "data seller's signature missing" checkSignedBySeller
 
   where
 
     info :: TxInfo
     info = scriptContextTxInfo ctx
 
-    -- txOutputs :: [TxOut]
-    -- txOutputs = txInfoOutputs info
-
-    -- txOutToOwner :: TxOut
-    -- txOutToOwner = case filter (\o -> txOutAddress o == dataOwner dat) txOutputs of
-    --     []  -> traceError "No output to collateral owner"
-    --     [o] -> o
-    --     _   -> traceError "More than one output to collateral owner"
-
     -- In lovelaces
     dataPrice :: Integer
     dataPrice = price dat
-
-    -- This is in Lovelaces
-    -- pricePaidToOwner :: Integer
-    -- pricePaidToOwner = valueOf (txOutValue txOutToOwner) adaSymbol adaToken
-
-    -- -- Check the price asked in ADA was paid to the data owner
-    -- checkPricePaidToOwner :: Bool
-    -- checkPricePaidToOwner = pricePaidToOwner >= dataPrice
 
     valuePaidToSeller :: Value
     valuePaidToSeller = valuePaidTo info (dataSeller dat)
@@ -101,6 +89,24 @@ mkValidator dat r ctx = case r of
 
     buyerHasPaidSeller :: Bool
     buyerHasPaidSeller = pricePaidToSeller >= dataPrice
+
+    consumesOnlyOneUtxo = length consumedInputsOfThisScript == 1
+        where
+        scriptAddress :: ValidatorHash
+        scriptAddress = ownHash ctx
+
+        -- The credentials that are required to unlock each input, can be either PubKeyHash,
+        -- which means they belong to a user, and he unlocks them by signing with his pk,
+        -- or ScriptCredentials, that require the script to be included, and validated
+        inputScriptCredentials :: [Credential]
+        inputScriptCredentials = map (addressCredential . txOutAddress . txInInfoResolved) $ txInfoInputs info
+
+        consumedInputsOfThisScript = filter protectedByThisScript inputScriptCredentials
+            where
+            protectedByThisScript :: Credential -> Bool
+            protectedByThisScript c = case c of
+                PubKeyCredential _  -> False
+                ScriptCredential vh -> vh == scriptAddress
 
 
 
