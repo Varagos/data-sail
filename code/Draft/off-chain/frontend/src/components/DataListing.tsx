@@ -36,8 +36,6 @@ function DataListing() {
   const { appState, setAppState } = useContext(AppStateContext);
   const { lucid, wAddr, dataTokenPolicyIdHex, dataListingScript } = appState;
   const [randomData, setRandomData] = useState('');
-  const [encryptedData, setEncryptedData] = useState('');
-  const [encryptionKey, setEncryptionKey] = useState('No Key');
   // Poll every 3s
   const data = usePollingData(3000);
   const [askingPrice, setAskingPrice] = useState<number | null>(null);
@@ -51,27 +49,14 @@ function DataListing() {
      * CryptoJS.lib.WordArray.random(128/8) generates a 128-bit random encryption key.
      * The .toString(CryptoJS.enc.Hex) converts the key to a hex string for easier handling.
      */
-    const key = CryptoJS.lib.WordArray.random(128 / 8).toString(CryptoJS.enc.Hex);
-    setEncryptionKey(key);
-    const ciphertext = CryptoJS.AES.encrypt(randomData, key).toString();
-    setEncryptedData(ciphertext);
-    // Here you can store the ciphertext wherever you want
-    console.log({ encryptedData: ciphertext });
+    // const key = CryptoJS.lib.WordArray.random(128 / 8).toString(CryptoJS.enc.Hex);
+    // setEncryptionKey(key);
+    // const ciphertext = CryptoJS.AES.encrypt(randomData, key).toString();
+    // setEncryptedData(ciphertext);
+    // // Here you can store the ciphertext wherever you want
+    // console.log({ encryptedData: ciphertext });
 
     await mintDataToken();
-    decryptData(ciphertext, key);
-  };
-
-  const hideKey = () => {
-    setEncryptionKey('No Key');
-  };
-
-  const decryptData = (encryptedData: string, encryptionKey: string) => {
-    const bytes = CryptoJS.AES.decrypt(encryptedData, encryptionKey);
-    const originalData = bytes.toString(CryptoJS.enc.Utf8);
-
-    console.log(originalData); // log the decrypted data to console, or use it however you wish
-    return originalData;
   };
 
   const getUtxo = async (address: string): Promise<UTxO> => {
@@ -214,11 +199,13 @@ function DataListing() {
           )}
         </ul>
 
-        <div className="flex flex-col mb-2 mb-16">
+        <div className="flex flex-col mb-2 mb-8">
           <ButtonDarkFullWidth clickHandler={handleDataSelling} disabled={!data || data.length === 0}>
             Mint Data Token
           </ButtonDarkFullWidth>
         </div>
+        <hr className="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
+
         <div className="flex flex-col mb-2">
           <input
             type="text"

@@ -7,6 +7,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 /**
  * Improvements:
  * - Authorization, the wallet owner could sign a nonce timestamped and send it to the server
+ * , we will check the signature and the timestamp to make sure that the request is coming from the wallet owner
  */
 const retrieveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {

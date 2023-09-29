@@ -41,7 +41,7 @@ main = do
       , bad  "Double spending" doubleSpending
       ]
  where
-    bad msg = good msg . mustFail
+    bad msg = good msg . mustFail -- mustFail: logs error if everything runs ok, succeeds if there is an error
     good = testNoErrors (adaValue 10_000_000 <> fakeValue scToken 100) defaultBabbage
 
 ---------------------------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ type DataListingScript = TypedValidator OnChain.DataListDatum OnChain.DataListin
 dataListingScript :: DataListingScript
 dataListingScript = TypedValidator $ toV2 OnChain.validator
 
--- | alocate 2 users with 1000 lovelaces each
+-- | alocate 2 users , one with 100 tokens, the other with 1000 ada
 setupUsers :: Run [PubKeyHash]
 setupUsers = sequence [firstUser, secondUser]
   where
@@ -130,14 +130,18 @@ normalSpending sellerIndex askedPrice paidPrice = do
     $ logError $ "Error occured. Received values: "  ++ show  (fmap flattenValue vals)
 
 
--- We write this test expecting to succeed, since we declare above we want it as bad
--- So the abuser here, would want u1 to only get 400, even though he would sell 100 tokens
+
+-- This method tries to double spend, and runs smoothly and the abuser manages to double spend
+-- If he fails, this method logs an error
+
+-- Having it declared above as bad, we want an error to be logged
+-- The abuser here would want u1 to only get 400, even though he would sell 50 tokens for 400 and his rest 50 tokens for 400 (2*400)
 -- while user1 would normally expect to receive 400 * 2
 doubleSpending :: Run ()
 doubleSpending = do
   [u1,u2] <- setupUsers
 
-  -- Lock 2 tokens utxos
+  -- Lock 2 tokens utxos, asking for 400 each
   let token = fakeValue scToken 50
   sp1 <- spend u1 token
   submitTx u1 $ lockingTx u1 400 sp1 token
@@ -145,6 +149,7 @@ doubleSpending = do
   sp2 <- spend u1 token
   submitTx u1 $ lockingTx u1 400 sp2 token
   --
+  -- Get the locked utxos
   scriptsUtxos <- utxoAt dataListingScript
   let [(ref1, out1), (ref2, out2)] = scriptsUtxos
 
@@ -153,6 +158,7 @@ doubleSpending = do
   submitTx u2 $ doubleConsumingTx u2 u1 u2_sp buyerPaying (ref1,ref2) (txOutValue out1) (OnChain.DataListDatum u1 400)
 
   [v1,v2] <- mapM valueAt [u1,u2]
+  -- If user 1 has only 400, this succeeds(logError does not run), and since it's a bad test, it will fail
   unless (v1 == adaValue 400 &&
     v2 == adaValue 600 <> fakeValue scToken 100)
     $ logError  $ "Error occured. Received values: "  ++ show  (fmap flattenValue [v1,v2])
