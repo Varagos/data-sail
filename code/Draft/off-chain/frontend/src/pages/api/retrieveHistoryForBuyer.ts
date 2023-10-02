@@ -2,7 +2,7 @@
 
 import { DataSession } from '@/types';
 import { decrypt } from '@/utilities/encryption';
-import { storage } from '@/utilities/storage/index';
+import { ipfsStorage, storage } from '@/utilities/storage/index';
 import crypto from 'crypto';
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -23,9 +23,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Token asset class and wallet address are required' });
   }
 
-  const result = await storage.retrieveData(tokenAssetClass as string);
+  const cid = await storage.retrieveData(tokenAssetClass as string);
+  console.log('cid', cid);
+  if (!cid) {
+    return res.status(404).json({ error: 'No data found for the given token asset class' });
+  }
+  const result = await ipfsStorage.retrieveData(cid as string);
+  console.log('result', result);
+
+  // const result = await storage.retrieveData(tokenAssetClass as string);
 
   if (!result) {
+    console.error('No data found at ipfs for that cid');
     return res.status(404).json({ error: 'No data found for the given token asset class' });
   }
 

@@ -1,6 +1,6 @@
 // pages/api/associateDataWithToken.js
 import { NextApiRequest, NextApiResponse } from 'next';
-import { storage } from '@/utilities/storage/index';
+import { ipfsStorage, storage } from '@/utilities/storage/index';
 
 /**
  *  Runs when a data listing is made, removes data association from wallet and sets it to the DataToken
@@ -27,7 +27,11 @@ const associateDataWithToken = async (req: NextApiRequest, res: NextApiResponse)
   // These 2 would run in a transaction in a real system
   await storage.deleteData(walletAddr);
 
-  await storage.storeData(data, dataTokenAssetClass);
+  // await storage.storeData(data, dataTokenAssetClass);
+
+  const cid = await ipfsStorage.storeData(data);
+  console.log('received cid:', cid);
+  await storage.storeData(cid, dataTokenAssetClass);
 
   res.status(201).json({ success: true });
 };

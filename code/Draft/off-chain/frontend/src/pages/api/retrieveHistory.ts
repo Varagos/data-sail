@@ -14,7 +14,7 @@ const retrieveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(405).end();
   }
 
-  console.log('Entered retrieveHistory');
+  // console.log('Entered retrieveHistory');
   const { identifier } = req.query; // Extracting the identifier from the query string
 
   if (!identifier) {
@@ -40,7 +40,7 @@ const retrieveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   const decryptedData = decrypt(result, encryptionKey);
   // console.log('decryptedData', decryptedData);
   const dataSession: DataSession = JSON.parse(decryptedData);
-  console.log({ dataSession });
+  // console.log({ dataSession });
   // console.log('Retrieving history result');
   res.status(200).json({ success: true, data: dataSession });
   // console.log('Retrieving history result', result);
