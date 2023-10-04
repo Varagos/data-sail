@@ -45,7 +45,10 @@ function PostBuyComponent({
     if (!wAddr) {
       throw new Error('No wallet address');
     }
-    const result = await retrieveHistoryForBuyer(tokenAssetClass, wAddr);
+    if (!lucid) {
+      throw new Error('No lucid');
+    }
+    const result = await retrieveHistoryForBuyer(tokenAssetClass, wAddr, lucid);
     console.log({ retrivedHistoryForBuyer: result });
     saveTemplateAsFile('data.json', result);
   };
