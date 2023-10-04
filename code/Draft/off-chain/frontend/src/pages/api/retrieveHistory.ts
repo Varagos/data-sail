@@ -1,8 +1,14 @@
 // pages/api/saveHistory.js
 import { DataSession } from '@/types';
+import { WALLET_ADDRESS_HEADER } from '@/utilities/digital-signature/create-header';
 import { decrypt } from '@/utilities/encryption';
+import { isSignedByWalletGuard } from '@/utilities/guards/is-signed-by-wallet';
 import { storage } from '@/utilities/storage/index';
+import { Blockfrost, Lucid } from 'lucid-cardano';
 import { NextApiRequest, NextApiResponse } from 'next';
+
+const blockFrostKey = process.env.BLOCKFROST_API_KEY;
+const lucid = await Lucid.new(new Blockfrost('https://cardano-preview.blockfrost.io/api/v0', blockFrostKey), 'Preview');
 
 /**
  * Improvements:
@@ -20,6 +26,16 @@ const retrieveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   if (!identifier) {
     return res.status(400).json({ success: false, message: 'Identifier is required' });
   }
+
+  const validationResult = isSignedByWalletGuard(req, lucid);
+  if (validationResult.success === false) {
+    return res.status(401).json({ success: false, message: validationResult.error });
+  }
+  const wallet = req.headers[WALLET_ADDRESS_HEADER];
+  if (wallet !== identifier) {
+    return res.status(400).json({ success: false, message: 'Identifier does not match wallet address' });
+  }
+  console.log('Validated digital signature for wallet');
 
   const result = await storage.retrieveData(identifier as string);
   if (!result) {

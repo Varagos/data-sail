@@ -18,9 +18,6 @@ const saveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   const encryptionKey = process.env.ENCRYPTION_KEY;
-  // const encryptionKey = crypto.randomBytes(32).toString('hex');
-
-  // console.log('Generated 32-byte key:', encryptionKey);
 
   if (!encryptionKey) {
     console.error('Encryption key is missing');
@@ -37,3 +34,8 @@ const saveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
 };
 
 export default saveHistory;
+
+// const generateEncryptionKey = () => {
+// const encryptionKey = crypto.randomBytes(32).toString('hex');
+// console.log('Generated 32-byte key:', encryptionKey);
+// }
