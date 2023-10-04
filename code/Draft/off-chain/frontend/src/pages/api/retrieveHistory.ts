@@ -3,7 +3,7 @@ import { DataSession } from '@/types';
 import { WALLET_ADDRESS_HEADER } from '@/utilities/digital-signature/create-header';
 import { decrypt } from '@/utilities/encryption';
 import { isSignedByWalletGuard } from '@/utilities/guards/is-signed-by-wallet';
-import { storage } from '@/utilities/storage/index';
+import { ipfsStorage, storage } from '@/utilities/storage/index';
 import { Blockfrost, Lucid } from 'lucid-cardano';
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -37,8 +37,8 @@ const retrieveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   }
   console.log('Validated digital signature for wallet');
 
-  const result = await storage.retrieveData(identifier as string);
-  if (!result) {
+  const cid = await storage.retrieveData(identifier as string);
+  if (!cid) {
     // return res.status(404).json({ success: false, message: 'No data found for the given identifier' });
     // Too many error logs, so let's just return an empty array
     return res.status(200).json({ success: true, data: [] });
@@ -49,10 +49,15 @@ const retrieveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
     console.error('Encryption key is missing');
     return res.status(500).json({ error: 'Internal server error' });
   }
+
+  const result = await ipfsStorage.retrieveData(cid as string);
+  console.log('result', result);
+
   if (typeof result !== 'string') {
     console.error('Stored data are not encrypted');
     return res.status(500).json({ error: 'Internal server error' });
   }
+
   const decryptedData = decrypt(result, encryptionKey);
   // console.log('decryptedData', decryptedData);
   const dataSession: DataSession = JSON.parse(decryptedData);

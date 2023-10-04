@@ -1,7 +1,7 @@
 // pages/api/saveHistory.js
 import { NextApiRequest, NextApiResponse } from 'next';
 import { encrypt } from '@/utilities/encryption';
-import { storage } from '@/utilities/storage/index';
+import { ipfsStorage, storage } from '@/utilities/storage/index';
 
 // Gets invoked by the extension, passing the data and wallet address associated with the data
 const saveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -27,7 +27,9 @@ const saveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   const stringifiedData = JSON.stringify(data);
   const encryptedData = encrypt(stringifiedData, encryptionKey);
 
-  const identifier = await storage.storeData(encryptedData, walletAddr);
+  const cid = await ipfsStorage.storeData(encryptedData);
+
+  const identifier = await storage.storeData(cid, walletAddr);
   console.log('Saving history result', identifier);
 
   res.status(201).json({ success: true, data: identifier });
