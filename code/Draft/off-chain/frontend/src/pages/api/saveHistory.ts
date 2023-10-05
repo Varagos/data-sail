@@ -9,7 +9,7 @@ const saveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(405).end();
   }
 
-  console.log('req.body', req.body);
+  // console.log('req.body', req.body);
   const data = req.body.data; // Validate and sanitize the data as needed
   const walletAddr = req.body.walletAddr; // Validate and sanitize the data as needed
   if (!data || !walletAddr) {
@@ -30,7 +30,7 @@ const saveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   const cid = await ipfsStorage.storeData(encryptedData);
 
   const identifier = await storage.storeData(cid, walletAddr);
-  console.log('Saving history result', identifier);
+  // console.log('Saving history result', identifier);
 
   res.status(201).json({ success: true, data: identifier });
 };

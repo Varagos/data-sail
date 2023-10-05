@@ -35,7 +35,7 @@ const retrieveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   if (wallet !== identifier) {
     return res.status(400).json({ success: false, message: 'Identifier does not match wallet address' });
   }
-  console.log('Validated digital signature for wallet');
+  // console.log('Validated digital signature for wallet');
 
   const cid = await storage.retrieveData(identifier as string);
   if (!cid) {
@@ -51,7 +51,7 @@ const retrieveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   const result = await ipfsStorage.retrieveData(cid as string);
-  console.log('result', result);
+  // console.log('result', result);
 
   if (typeof result !== 'string') {
     console.error('Stored data are not encrypted');

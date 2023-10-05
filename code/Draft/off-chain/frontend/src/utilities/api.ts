@@ -24,7 +24,7 @@ export async function retrieveHistoryForBuyer(
   wAddr: string,
   lucid: Lucid
 ): Promise<DataSession> {
-  const payload = 'Fetch_wallet_data_' + Date.now();
+  const payload = 'Fetch_seller_data_' + Date.now();
   const signedMessage = await signMessage(lucid, payload, wAddr);
   const [signatureKey, signatureValue] = createDigitalSignatureHeader(payload, signedMessage);
   const [walletKey, walletValue] = createWalletHeader(wAddr);
@@ -42,7 +42,7 @@ export async function retrieveHistoryForBuyer(
 
   if (res.ok) {
     const { data: decryptedData } = await res.json();
-    console.log('Decrypted Data:', decryptedData);
+    // console.log('Decrypted Data:', decryptedData);
     return decryptedData as DataSession;
   } else {
     console.log('Error:', res.status, res);

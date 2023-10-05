@@ -7,7 +7,7 @@ if (!project_id) {
 }
 const api = new BlockFrostAPI({ projectId: project_id });
 export const walletHasToken = async (walletAddress: string, tokenAssetClass: string): Promise<boolean> => {
-  console.log('assetClass', tokenAssetClass);
+  //   console.log('assetClass', tokenAssetClass);
   const res = await api.addressesUtxosAsset(walletAddress, tokenAssetClass);
   return res.length === 1;
 };

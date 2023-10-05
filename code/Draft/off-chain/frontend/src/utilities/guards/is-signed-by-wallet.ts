@@ -33,8 +33,6 @@ export const isSignedByWalletGuard = (req: NextApiRequest, lucid: Lucid): IsSign
       error_code: 'BAD_INPUT',
     };
   }
-  console.log(req.headers);
-  console.log(WALLET_ADDRESS_HEADER);
   const walletAddress = req.headers[WALLET_ADDRESS_HEADER];
   if (!walletAddress || typeof walletAddress !== 'string') {
     console.error('Wallet address header is missing');

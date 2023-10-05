@@ -63,7 +63,7 @@ export class IpfsStorage implements IStorage {
       },
     });
     const data = await response.text();
-    console.log('read ipfs data', data);
+    // console.log('read ipfs data', data);
     return data;
   }
 

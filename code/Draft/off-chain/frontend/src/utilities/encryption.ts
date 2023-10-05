@@ -4,7 +4,7 @@ import crypto from 'crypto';
 export function encrypt(text: string, key: string) {
   // The Initialization Vector is generated randomly for each encryption and prepended to the encrypted data.
   const iv = crypto.randomBytes(16);
-  console.log(Buffer.from(key, 'hex').length);
+  // console.log(Buffer.from(key, 'hex').length);
 
   // initialize the cipher object with the key and IV
   const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key, 'hex'), iv);

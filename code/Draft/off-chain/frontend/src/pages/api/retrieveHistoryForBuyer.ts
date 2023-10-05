@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ error: 'No data found for the given token asset class' });
   }
   const result = await ipfsStorage.retrieveData(cid as string);
-  console.log('result', result);
+  // console.log('result', result);
 
   // const result = await storage.retrieveData(tokenAssetClass as string);
 
@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const decryptedData = decrypt(result, encryptionKey);
   // console.log('decryptedData', decryptedData);
   const dataSession: DataSession = JSON.parse(decryptedData);
-  console.log({ dataSession });
+  // console.log({ dataSession });
   // console.log('Retrieving history result');
   res.status(200).json({ success: true, data: dataSession });
 }

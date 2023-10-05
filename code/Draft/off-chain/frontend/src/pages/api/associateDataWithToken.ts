@@ -9,7 +9,7 @@ const associateDataWithToken = async (req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') {
     return res.status(405).end();
   }
-  console.log('Associate data with token', req.body);
+  // console.log('Associate data with token', req.body);
 
   const walletAddr = req.body.walletAddr; // Validate and sanitize the data as needed
   const dataTokenAssetClass = req.body.tokenAssetClass;
