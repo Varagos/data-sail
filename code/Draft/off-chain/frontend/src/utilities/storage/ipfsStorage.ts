@@ -7,9 +7,7 @@ import { DataSession, StorageIdentifier } from '@/types';
 import { unlink, writeFile } from 'fs/promises';
 
 export class IpfsStorage implements IStorage {
-  private IPFS = new BlockFrostIPFS({
-    projectId: 'ipfsgAnaNsw3s2FUF7sXNKCwQQKqQ6q54UIZ',
-  });
+  private IPFS: BlockFrostIPFS;
 
   private ipfsProjectId: string;
 
