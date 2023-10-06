@@ -9,7 +9,7 @@ export class LocalJSONFileStorage implements IStorage {
   constructor(fileName: string) {
     // /workspace/code/Draft/off-chain/frontend/data/data.json
     const projectRoot = path.resolve(__dirname, '..', '..', '..', '..');
-    console.log({ projectRoot });
+    // console.log({ projectRoot });
     const dataPath = path.resolve(projectRoot, 'data');
     this.filePath = path.resolve(dataPath, fileName);
   }

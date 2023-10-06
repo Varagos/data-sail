@@ -9,7 +9,7 @@ const associateDataWithToken = async (req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') {
     return res.status(405).end();
   }
-  console.log('Associate data with token', req.body);
+  // console.log('Associate data with token', req.body);
 
   const walletAddr = req.body.walletAddr; // Validate and sanitize the data as needed
   const dataTokenAssetClass = req.body.tokenAssetClass;
@@ -18,16 +18,16 @@ const associateDataWithToken = async (req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'DataTokenAssetClass and walletAddr are required' });
   }
 
-  const data = await storage.retrieveData(walletAddr);
-  if (data === null) {
+  const cid = await storage.retrieveData(walletAddr);
+  if (cid === null) {
     console.error('No data found for the given wallet address', walletAddr);
     return res.status(404).json({ success: false, message: 'No data found for the given wallet address' });
   }
+  console.log('received cid:', cid);
 
   // These 2 would run in a transaction in a real system
+  await storage.storeData(cid, dataTokenAssetClass);
   await storage.deleteData(walletAddr);
-
-  await storage.storeData(data, dataTokenAssetClass);
 
   res.status(201).json({ success: true });
 };
