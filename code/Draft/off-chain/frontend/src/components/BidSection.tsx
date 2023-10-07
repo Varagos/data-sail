@@ -1,13 +1,8 @@
-import { FiShoppingCart } from 'react-icons/fi';
 import { AppStateContext } from '@/pages/_app';
-import { Data, Lucid, Script, UTxO, getAddressDetails, toText } from 'lucid-cardano';
+import { Data, UTxO } from 'lucid-cardano';
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
-import { DataListingDatum, DataListingDatumType } from './DataListing';
-import { signAndSubmitTx } from '@/utilities/utilities';
-import PostBuyComponent from './PostBuyComponent';
+import { DataListingDatumType } from './DataListing';
 import { TokenListing } from '@/services/token-listings/interface';
-import fetchTokenListings from '@/pages/api/fetchTokenListings';
 import { fetchTokenListingsApi } from '@/utilities/api';
 
 type UtxoEntry = {
@@ -23,25 +18,21 @@ const DataListingRedeemerSchema = Data.Enum([Data.Literal('Redeem'), Data.Litera
 type DataListingRedeemer = Data.Static<typeof DataListingRedeemerSchema>;
 const DataListingRedeemer = DataListingRedeemerSchema as unknown as DataListingRedeemer;
 
-export enum BuyStatus {
-  Initiating,
-  Waiting,
-  Completed,
-  DataReady,
-}
-
 function BidSection() {
   const { appState, setAppState } = useContext(AppStateContext);
   const { lucid, wAddr, dataTokenPolicyIdHex, dataListingScript } = appState;
-  const [utxos, setUtxos] = useState<UtxoEntry[]>([]);
-  const [selectedUtxo, setSelectedUtxo] = useState<UtxoEntry | null>(null);
-
-  const [buyStatus, setBuyStatus] = useState<BuyStatus>(BuyStatus.Initiating);
-  const [tokenAssetClass, setTokenAssetClass] = useState<string>('');
 
   const [openBidAssetClass, setOpenBidAssetClass] = useState<string | null>(null);
   const [bidAmount, setBidAmount] = useState<number>(0);
   const [tokens, setTokens] = useState<TokenListing[]>([]);
+
+  // Assume bids is an array of objects that contain the user's active bids
+  // For demonstration, each object has assetClass, date, and amount
+  const [bids, setBids] = useState([
+    { assetClass: 'abcd1234', date: '2022-12-01', amount: 20 },
+    { assetClass: 'efgh5678', date: '2022-12-05', amount: 40 },
+    // ...more bids
+  ]);
 
   useEffect(() => {
     fetchTokenListings();
@@ -85,6 +76,15 @@ function BidSection() {
 
     // Close the bid input
     setOpenBidAssetClass(null);
+  };
+
+  // Function to redeem bid
+  const redeemBid = (assetClass: string) => {
+    console.log(`Redeeming bid for ${assetClass}`);
+    // Implement your redeem logic here
+
+    // Remove the redeemed bid from the bids state
+    setBids(bids.filter((bid) => bid.assetClass !== assetClass));
   };
 
   return (
@@ -156,6 +156,35 @@ function BidSection() {
           ))}
         </tbody>
       </table>
+
+      {/* New section for viewing bids */}
+      <section className="mt-10">
+        <h3>Your Active Bids</h3>
+        <table className="w-full max-w-full text-left border-collapse mt-4">
+          <thead>
+            <tr>
+              <th className="p-3 border-b-2 border-zinc-700">Asset Class</th>
+              <th className="p-3 border-b-2 border-zinc-700">Date</th>
+              <th className="p-3 border-b-2 border-zinc-700">Amount</th>
+              <th className="p-3 border-b-2 border-zinc-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bids.map((bid, index) => (
+              <tr key={index}>
+                <td className="p-3 border-b border-zinc-700">{truncateMiddle(bid.assetClass)}</td>
+                <td className="p-3 border-b border-zinc-700">{bid.date}</td>
+                <td className="p-3 border-b border-zinc-700">{bid.amount} ADA</td>
+                <td className="p-3 border-b border-zinc-700">
+                  <button onClick={() => redeemBid(bid.assetClass)} className="rounded-lg p-2 text-zinc-50 bg-red-600">
+                    Redeem
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
     </section>
   );
 }
