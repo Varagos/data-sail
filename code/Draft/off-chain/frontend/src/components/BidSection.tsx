@@ -1,13 +1,15 @@
 import { AppStateContext } from '@/pages/_app';
 import { Data, UTxO, getAddressDetails } from 'lucid-cardano';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { use, useCallback, useContext, useEffect, useState } from 'react';
 import { DataListingDatumType } from './DataListing';
 import { TokenListing } from '@/services/token-listings/interface';
-import { fetchTokenListingsApi } from '@/utilities/api';
+import { ActiveBidsApi, fetchTokenListingsApi } from '@/utilities/api';
 import { extractPolicyIdFromAssetClass, getFinalScript } from './AcceptBid';
 import { signAndSubmitTx } from '@/utilities/utilities';
 import { truncateMiddle } from '@/utilities/text';
 import { IoLinkOutline } from 'react-icons/io5';
+import type { ActiveBid } from '@/services/active-bids/interface';
+import { waitForDebugger } from 'inspector';
 
 export const BidDatumSchema = Data.Object({
   dataBuyer: Data.Bytes(),
@@ -28,6 +30,8 @@ function BidSection() {
   const [bidAmount, setBidAmount] = useState<bigint>(0n);
   const [tokens, setTokens] = useState<TokenListing[]>([]);
 
+  const [activeBids, setActiveBids] = useState<ActiveBid[]>([]); // TODO: Replace with actual bids
+
   // Assume bids is an array of objects that contain the user's active bids
   // For demonstration, each object has assetClass, date, and amount
   const [bids, setBids] = useState([
@@ -35,6 +39,16 @@ function BidSection() {
     { assetClass: 'efgh5678', date: '2022-12-05', amount: 40 },
     // ...more bids
   ]);
+
+  useEffect(() => {
+    if (!wAddr) return;
+    async function fetchActiveBidsApi(wallet: string) {
+      const activeBids = await ActiveBidsApi.fetchActiveBids(wallet);
+      console.log('activeBids', activeBids);
+      setActiveBids(activeBids);
+    }
+    fetchActiveBidsApi(wAddr);
+  }, [wAddr]);
 
   useEffect(() => {
     fetchTokenListings();

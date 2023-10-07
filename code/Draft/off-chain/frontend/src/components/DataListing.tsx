@@ -13,7 +13,7 @@ import {
 } from 'lucid-cardano';
 import { AppStateContext, TOKEN_NAME } from '@/pages/_app';
 import { signAndSubmitTx } from '@/utilities/utilities';
-import { addTokenListing, associateDataWithToken } from '@/utilities/api';
+import { associateDataWithToken } from '@/utilities/api';
 import useFetchWalletData from '@/hooks/useFetchWalletData';
 import { IoReloadCircleSharp } from 'react-icons/io5';
 import AcceptBid from './AcceptBid';
@@ -105,34 +105,15 @@ function DataListing() {
       .complete();
 
     await signAndSubmitTx(tx);
+    // This could run when token is minted and added to wallet,
+    // Sending also a digital signature to the server
     await associateDataWithToken(wAddr, unit);
-    await addTokenListing(wAddr, unit);
   };
 
-  const lookWalletForDataToken = async (): Promise<UTxO | null> => {
-    if (!lucid) throw new Error('Lucid not initialized');
-    if (!wAddr) throw new Error('Wallet not initialized');
-    const utxos = await lucid.utxosAt(wAddr);
-    const tokenNameHex = fromText('DataToken');
-
-    const dataTokenUtxo = utxos.find((utxo) => {
-      const assetIds = Object.keys(utxo.assets);
-      if (assetIds.length === 0) return false;
-      return assetIds.some((assetId) => assetId.endsWith(tokenNameHex));
-    });
-
-    return dataTokenUtxo ?? null;
-  };
-
-  /**
-   * TODO? merge into 1 tx with minting of token?
-   */
-  const lockUnderDataListing = async (nftUtxo: UTxO | null) => {
-    console.log({ askingPrice });
+  const lockUnderDataListing = async () => {
     const { dataTokenAssetClassHex: nftAssetClassHex } = appState;
     if (!nftAssetClassHex) {
       throw new Error('DataToken not minted');
-      // const dataTokenUtxo = await lookWalletForDataToken();
     }
     if (!lucid) throw new Error('Lucid not initialized');
     if (!wAddr) throw new Error('Wallet not initialized');
@@ -163,16 +144,6 @@ function DataListing() {
       .complete();
     const txId = await signAndSubmitTx(tx);
     console.log(`DataToken locked tx: ${txId}`);
-  };
-
-  const handleAddTokenListing = async () => {
-    const { dataTokenAssetClassHex: nftAssetClassHex } = appState;
-    if (!nftAssetClassHex) {
-      throw new Error('DataToken not minted');
-    }
-    if (!lucid) throw new Error('Lucid not initialized');
-    if (!wAddr) throw new Error('Wallet not initialized');
-    await addTokenListing(wAddr, nftAssetClassHex);
   };
 
   return (
@@ -215,7 +186,7 @@ function DataListing() {
           />
         </div>
         <div className="flex flex-col mb-2">
-          <ButtonDarkFullWidth clickHandler={() => lockUnderDataListing(null)}>List Data for Sale</ButtonDarkFullWidth>
+          <ButtonDarkFullWidth clickHandler={lockUnderDataListing}>List Data for Sale</ButtonDarkFullWidth>
         </div>
       </div>
 

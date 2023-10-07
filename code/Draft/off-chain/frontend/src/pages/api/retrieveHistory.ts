@@ -1,4 +1,3 @@
-// pages/api/saveHistory.js
 import { DataSession } from '@/types';
 import { WALLET_ADDRESS_HEADER } from '@/utilities/digital-signature/create-header';
 import { decrypt } from '@/utilities/encryption';
@@ -10,11 +9,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 const blockFrostKey = process.env.BLOCKFROST_API_KEY;
 const lucid = await Lucid.new(new Blockfrost('https://cardano-preview.blockfrost.io/api/v0', blockFrostKey), 'Preview');
 
-/**
- * Improvements:
- * - Authorization, the wallet owner could sign a nonce timestamped and send it to the server
- * , we will check the signature and the timestamp to make sure that the request is coming from the wallet owner
- */
 const retrieveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {
     return res.status(405).end();
@@ -51,7 +45,6 @@ const retrieveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   const result = await ipfsStorage.retrieveData(cid as string);
-  // console.log('result', result);
 
   if (typeof result !== 'string') {
     console.error('Stored data are not encrypted');

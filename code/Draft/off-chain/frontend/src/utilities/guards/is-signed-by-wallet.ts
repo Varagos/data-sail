@@ -12,7 +12,7 @@ export type IsSignedByWalletGuardResult = {
 
 /**
  * Checks that the request contains a valid digital signature for the
- * wallet at X-Wallet-Address header
+ * wallet at wallet-address
  */
 export const isSignedByWalletGuard = (req: NextApiRequest, lucid: Lucid): IsSignedByWalletGuardResult => {
   const { authorization } = req.headers;

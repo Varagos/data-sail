@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'fs/promises';
 
-export class BaseFileStorage<T> {
+export class BaseFileKeyValueStorage<T> {
   constructor(protected readonly filePath: string) {}
 
   protected async readFromFile(): Promise<Map<string, T>> {
@@ -16,6 +16,21 @@ export class BaseFileStorage<T> {
   }
 
   protected async addEntry(key: string, value: T): Promise<void> {
+    const storage = await this.readFromFile();
+    storage.set(key, value);
+    await this.writeToFile(storage);
+  }
+
+  protected async retrieveEntry(key: string): Promise<T | null> {
+    const storage = await this.readFromFile();
+    const data = storage.get(key);
+    if (!data) {
+      return null;
+    }
+    return data;
+  }
+
+  protected async updateEntry(key: string, value: T): Promise<void> {
     const storage = await this.readFromFile();
     storage.set(key, value);
     await this.writeToFile(storage);

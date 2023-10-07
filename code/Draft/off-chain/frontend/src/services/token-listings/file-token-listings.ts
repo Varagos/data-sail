@@ -1,8 +1,8 @@
 import { resolve } from 'path';
-import { BaseFileStorage } from '../common/file-storage';
+import { BaseFileKeyValueStorage } from '../common/file-storage';
 import { ITokenListings, TokenListing } from './interface';
 
-export default class FileTokenListings extends BaseFileStorage<string> implements ITokenListings {
+export default class FileTokenListings extends BaseFileKeyValueStorage<string> implements ITokenListings {
   constructor(fileName: string = 'token-listings.json') {
     // /workspace/code/Draft/off-chain/frontend/data/data.json
     const projectRoot = resolve(__dirname, '..', '..', '..', '..');

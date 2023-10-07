@@ -53,7 +53,7 @@ export class IpfsStorage implements IStorage {
     }
   }
 
-  public async retrieveData(cid: StorageIdentifier): Promise<DataSession | string | null> {
+  public async retrieveData(cid: StorageIdentifier): Promise<string | null> {
     const url = `https://ipfs.blockfrost.io/api/v0/ipfs/gateway/${cid}`;
     const response = await fetch(url, {
       headers: {
@@ -63,10 +63,6 @@ export class IpfsStorage implements IStorage {
     const data = await response.text();
     // console.log('read ipfs data', data);
     return data;
-  }
-
-  public async retrieveAllData(): Promise<Array<DataSession | string>> {
-    throw new Error('Method not implemented.');
   }
 
   private tmpFile(ext: string) {

@@ -1,4 +1,3 @@
-// pages/api/getTxInfo.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 
@@ -17,8 +16,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const txInfo = await api.txs(txHash);
-    // console.log(txInfo);
     const txUtxos = await api.txsUtxos(txHash);
     // console.log(txUtxos);
     const inputAddress = txUtxos.inputs.map((i) => i.address);

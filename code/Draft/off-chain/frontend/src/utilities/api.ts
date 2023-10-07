@@ -3,6 +3,7 @@ import type { DataSession } from '@/types';
 import { signMessage } from './digital-signature/sign-message';
 import { Lucid } from 'lucid-cardano';
 import { createDigitalSignatureHeader, createWalletHeader } from './digital-signature/create-header';
+import type { ActiveBid } from '@/services/active-bids/interface';
 
 export async function associateDataWithToken(walletAddr: string, dataTokenAssetClass: string) {
   const res = await fetch('/api/associateDataWithToken', {
@@ -51,22 +52,6 @@ export async function retrieveHistoryForBuyer(
   }
 }
 
-export async function addTokenListing(walletAddr: string, dataTokenAssetClass: string) {
-  const res = await fetch('/api/addTokenListing', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ walletAddr, tokenAssetClass: dataTokenAssetClass }),
-  });
-
-  if (res.ok) {
-    console.log('Added token listing');
-  } else {
-    console.log('Error:', res.status);
-  }
-}
-
 export async function fetchTokenListingsApi(): Promise<TokenListing[]> {
   const res = await fetch('/api/fetchTokenListings', {
     method: 'GET',
@@ -82,5 +67,25 @@ export async function fetchTokenListingsApi(): Promise<TokenListing[]> {
   } else {
     console.log('Error:', res.status);
     throw new Error('Error fetching token listings');
+  }
+}
+
+export class ActiveBidsApi {
+  static async fetchActiveBids(wallet: string): Promise<ActiveBid[]> {
+    const res = await fetch(`/api/activeBid/fetchByWallet?wallet=${wallet}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (res.ok) {
+      const { data: activeBids } = await res.json();
+      console.log('Active Bids:', activeBids);
+      return activeBids as ActiveBid[];
+    } else {
+      console.log('Error:', res.status);
+      throw new Error('Error fetching active bids');
+    }
   }
 }

@@ -24,3 +24,8 @@ export function decrypt(text: string, key: string) {
   decrypted = Buffer.concat([decrypted, decipher.final()]);
   return decrypted.toString();
 }
+
+// const generateEncryptionKey = () => {
+// const encryptionKey = crypto.randomBytes(32).toString('hex');
+// console.log('Generated 32-byte key:', encryptionKey);
+// }
