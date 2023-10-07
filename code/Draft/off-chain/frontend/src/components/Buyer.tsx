@@ -7,6 +7,7 @@ import { DataListingDatum, DataListingDatumType } from './DataListing';
 import { signAndSubmitTx } from '@/utilities/utilities';
 import PostBuyComponent from './PostBuyComponent';
 import BidSection from './BidSection';
+import PostBidAccepted from './PostBidAccepted';
 
 type UtxoEntry = {
   id: string;
@@ -143,10 +144,9 @@ WHEN ADDDING STAKE CREDENTIAL:
    * Find using txHash and some provider
    */
   const findSellerAddress = async (lockedUtxo: UTxO, pubKeyHash: string): Promise<string> => {
-    const { txHash, outputIndex } = lockedUtxo;
+    const { txHash } = lockedUtxo;
     console.log({
       txHash,
-      outputIndex,
     });
     // const tx = `${txHash}#${outputIndex}`;
     // Tx that locked the utxo, we are trying to find the address that locked it
@@ -277,6 +277,7 @@ WHEN ADDDING STAKE CREDENTIAL:
         </div>
       </div>
       <BidSection />
+      <PostBidAccepted />
     </div>
   );
 }

@@ -1,9 +1,12 @@
 import { AppStateContext } from '@/pages/_app';
-import { Data, UTxO } from 'lucid-cardano';
+import { Data, UTxO, getAddressDetails } from 'lucid-cardano';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { DataListingDatumType } from './DataListing';
 import { TokenListing } from '@/services/token-listings/interface';
 import { fetchTokenListingsApi } from '@/utilities/api';
+import { extractPolicyIdFromAssetClass, getFinalScript } from './AcceptBid';
+import { signAndSubmitTx } from '@/utilities/utilities';
+import { truncateMiddle } from '@/utilities/text';
 
 export const BidDatumSchema = Data.Object({
   dataBuyer: Data.Bytes(),
@@ -12,16 +15,16 @@ export const BidDatumSchema = Data.Object({
 export type BidDatumType = Data.Static<typeof BidDatumSchema>;
 export const BidDatum = BidDatumSchema as unknown as BidDatumType;
 
-const DataListingRedeemerSchema = Data.Enum([Data.Literal('Redeem'), Data.Literal('Purchase')]);
-type DataListingRedeemer = Data.Static<typeof DataListingRedeemerSchema>;
-const DataListingRedeemer = DataListingRedeemerSchema as unknown as DataListingRedeemer;
+const BidRedeemerSchema = Data.Enum([Data.Literal('Redeem'), Data.Literal('Sell')]);
+export type BidRedeemerType = Data.Static<typeof BidRedeemerSchema>;
+export const BidRedeemer = BidRedeemerSchema as unknown as BidRedeemerType;
 
 function BidSection() {
   const { appState, setAppState } = useContext(AppStateContext);
   const { lucid, wAddr, dataTokenPolicyIdHex, dataListingScript } = appState;
 
   const [openBidAssetClass, setOpenBidAssetClass] = useState<string | null>(null);
-  const [bidAmount, setBidAmount] = useState<number>(0);
+  const [bidAmount, setBidAmount] = useState<bigint>(0n);
   const [tokens, setTokens] = useState<TokenListing[]>([]);
 
   // Assume bids is an array of objects that contain the user's active bids
@@ -36,16 +39,8 @@ function BidSection() {
     fetchTokenListings();
   }, []);
 
-  // Function to truncate text in the middle
-  const truncateMiddle = (text: string, startChars = 6, endChars = 6, separator = '...') => {
-    if (text.length <= startChars + endChars) {
-      return text;
-    }
-    return text.substr(0, startChars) + separator + text.substr(text.length - endChars);
-  };
-
   const handleBidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBidAmount(Number(e.target.value));
+    setBidAmount(BigInt(e.target.value));
   };
 
   const handleCopy = useCallback((textToCopy: string) => {
@@ -68,9 +63,36 @@ function BidSection() {
     setTokens(tokenListings);
   };
 
-  const submitBid = (assetClass: string) => {
-    console.log('Submitting bid for', assetClass, 'of amount', bidAmount);
+  const submitBid = async (tokenAssetClass: string) => {
+    if (!lucid || !wAddr) {
+      console.error('Lucid not initialized');
+      return;
+    }
+    console.log('Submitting bid for', tokenAssetClass, 'of amount', bidAmount);
     // Perform the actual bid submission here
+    if (bidAmount <= 0n) {
+      console.error('Bid amount must be greater than 0');
+      return;
+    }
+
+    const [tokenPolicyId, tokenNameHex] = extractPolicyIdFromAssetClass(tokenAssetClass);
+
+    const spendingValidator = getFinalScript(tokenPolicyId, tokenNameHex);
+    const address = lucid.utils.validatorToAddress(spendingValidator);
+
+    const pkh: string = getAddressDetails(wAddr).paymentCredential?.hash || '';
+
+    const datum: BidDatumType = {
+      dataBuyer: pkh,
+    };
+
+    const tx = await lucid!
+      .newTx()
+      .payToContract(address, { inline: Data.to(datum, BidDatum) }, { lovelace: bidAmount * 1_000_000n })
+      .addSignerKey(pkh)
+      .complete();
+    const txId = await signAndSubmitTx(tx);
+    console.log(`Bid placed tx: ${txId}`);
 
     // Close the bid input
     setOpenBidAssetClass(null);
@@ -134,6 +156,7 @@ function BidSection() {
                     <button
                       onClick={() => submitBid(token.tokenAssetClass)}
                       className="rounded-lg p-2 text-zinc-50 bg-zinc-800"
+                      disabled={bidAmount <= 0n}
                     >
                       Submit
                     </button>
