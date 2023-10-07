@@ -227,12 +227,15 @@ const AcceptBid = () => {
         tokens.map((token, index) => (
           <div key={index} className="mb-4">
             <div className="flex justify-between py-2 border-b">
-              <span className="text-zinc-800">{token.name}</span>
+              <a className="text-zinc-800" href={`https://preview.cexplorer.io/asset/${token.id}`}>
+                {token.name}
+              </a>
               {token.bids && token.bids.length > 0 && (
                 <button onClick={() => toggleBids(token.id)} className="text-blue-600">
                   {`View ${token.bids.length} Bids`}
                 </button>
               )}
+              {token.bids.length === 0 && <span className="text-zinc-600">No Bids</span>}
             </div>
 
             {/* Collapsible section to display bids */}

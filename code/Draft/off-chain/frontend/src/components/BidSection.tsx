@@ -7,6 +7,7 @@ import { fetchTokenListingsApi } from '@/utilities/api';
 import { extractPolicyIdFromAssetClass, getFinalScript } from './AcceptBid';
 import { signAndSubmitTx } from '@/utilities/utilities';
 import { truncateMiddle } from '@/utilities/text';
+import { IoLinkOutline } from 'react-icons/io5';
 
 export const BidDatumSchema = Data.Object({
   dataBuyer: Data.Bytes(),
@@ -133,13 +134,22 @@ function BidSection() {
             <tr key={token.tokenAssetClass}>
               <td className="p-3 border-b border-zinc-700">
                 <span>{truncateMiddle(token.tokenAssetClass)}</span>
-                <button onClick={() => handleCopy(token.tokenAssetClass)} className="ml-2">
+                <button onClick={() => handleCopy(token.tokenAssetClass)} className="ml-2" title="Click to copy">
                   📋
                 </button>
+                <a
+                  href={`https://preview.cexplorer.io/asset/${token.tokenAssetClass}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-2 pt-2 inline-block"
+                  title="View on Cardano Explorer"
+                >
+                  <IoLinkOutline />
+                </a>
               </td>
               <td className="p-3 border-b border-zinc-700">
                 <span>{truncateMiddle(token.owner)}</span>
-                <button onClick={() => handleCopy(token.owner)} className="ml-2">
+                <button onClick={() => handleCopy(token.owner)} className="ml-2" title="Click to copy">
                   📋
                 </button>
               </td>
@@ -179,8 +189,8 @@ function BidSection() {
       </table>
 
       {/* New section for viewing bids */}
-      <section className="mt-10">
-        <h3>Your Active Bids</h3>
+      <section className="mt-20">
+        <h3 className="text-lg">Your Active Bids</h3>
         <table className="w-full max-w-full text-left border-collapse mt-4">
           <thead>
             <tr>

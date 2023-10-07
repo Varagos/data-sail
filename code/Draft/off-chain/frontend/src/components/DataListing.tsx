@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react';
-import CryptoJS from 'crypto-js';
 import ButtonDarkFullWidth from './elements/dark-full-w-button';
 import {
   Data,
@@ -14,7 +13,6 @@ import {
 } from 'lucid-cardano';
 import { AppStateContext, TOKEN_NAME } from '@/pages/_app';
 import { signAndSubmitTx } from '@/utilities/utilities';
-import usePollingData from '@/hooks/usePollingData';
 import { addTokenListing, associateDataWithToken } from '@/utilities/api';
 import useFetchWalletData from '@/hooks/useFetchWalletData';
 import { IoReloadCircleSharp } from 'react-icons/io5';
@@ -43,25 +41,6 @@ function DataListing() {
   // const data = usePollingData(3000);
   const [data, fetchWalletData] = useFetchWalletData();
   const [askingPrice, setAskingPrice] = useState<number | null>(null);
-
-  /**
-   * 1. Encrypt data
-   * 2. Transaction to mint DataToken and lock under DataListing smart contract
-   */
-  const handleDataSelling = async () => {
-    /***
-     * CryptoJS.lib.WordArray.random(128/8) generates a 128-bit random encryption key.
-     * The .toString(CryptoJS.enc.Hex) converts the key to a hex string for easier handling.
-     */
-    // const key = CryptoJS.lib.WordArray.random(128 / 8).toString(CryptoJS.enc.Hex);
-    // setEncryptionKey(key);
-    // const ciphertext = CryptoJS.AES.encrypt(randomData, key).toString();
-    // setEncryptedData(ciphertext);
-    // // Here you can store the ciphertext wherever you want
-    // console.log({ encryptedData: ciphertext });
-
-    await mintDataToken();
-  };
 
   const getUtxo = async (address: string): Promise<UTxO> => {
     if (!lucid) throw new Error('Lucid not initialized');
@@ -127,6 +106,7 @@ function DataListing() {
 
     await signAndSubmitTx(tx);
     await associateDataWithToken(wAddr, unit);
+    await addTokenListing(wAddr, unit);
   };
 
   const lookWalletForDataToken = async (): Promise<UTxO | null> => {
@@ -220,17 +200,10 @@ function DataListing() {
         </ul>
 
         <div className="flex flex-col mb-2 mb-8">
-          <ButtonDarkFullWidth clickHandler={handleDataSelling} disabled={!data || data.length === 0}>
+          <ButtonDarkFullWidth clickHandler={mintDataToken} disabled={!data || data.length === 0}>
             Mint Data Token
           </ButtonDarkFullWidth>
         </div>
-        <div className="flex flex-col mb-2 mb-8">
-          {/* This could be done automatically upon new token mint, and addition to wallet detected */}
-          <ButtonDarkFullWidth clickHandler={handleAddTokenListing} disabled={!data || data.length === 0}>
-            Add Token Listing
-          </ButtonDarkFullWidth>
-        </div>
-
         <hr className="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
 
         <div className="flex flex-col mb-2">
