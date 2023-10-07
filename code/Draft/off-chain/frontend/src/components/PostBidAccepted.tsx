@@ -111,7 +111,7 @@ const PostBidAccepted = () => {
   return (
     <div className="shadow-[0_4px_0px_0px_rgba(0,0,0,0.25)] w-[864px] bg-zinc-50 border border-zinc-600 rounded-xl p-9 mt-5 overflow-x-auto">
       <div className="flex flex-row justify-between items-center mb-5">
-        <h2>Your Wallet</h2>
+        <h2 className="text-2xl mb-4">Your Wallet</h2>
         <button
           onClick={scanWallet}
           className="px-5 py-3 rounded bg-blue-500 text-white shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)] font-quicksand font-bold active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)]"
