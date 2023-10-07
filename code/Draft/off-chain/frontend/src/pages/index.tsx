@@ -53,7 +53,7 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen w-screen h-screen gap-6 flex-row-reverse items-center justify-between px-5 pb-5  pt-20 bg-zinc-800">
+    <main className="flex min-h-screen w-screen min-h-screen gap-6 flex-row-reverse items-center justify-between px-5 pb-5 pt-20 bg-zinc-800">
       <div className="flex flex-col items-center justify-start  w-[380px] mt-2">
         {/* USER LOGGED - ABSOLUTE POSITION */}
         <div className="absolute justify-center items-center right-0 top-5 bg-zinc-50  h-12  w-48 rounded-l-2xl flex flex-row">
@@ -108,7 +108,7 @@ export default function Home() {
       </div>
 
       {/* ACTIONS SECTION - MAIN CONTAINER(WHITE AND ROUNDED) */}
-      <div className="flex flex-col items-center gap-8  h-full py-10 bg-zinc-50 w-4/5 rounded-2xl">
+      <div className="flex flex-col items-center gap-8  min-h-screen py-10 bg-zinc-50 w-4/5 rounded-2xl">
         {
           isPerson === 'seller' && <DataListing />
           // <DataConsentComponent />

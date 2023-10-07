@@ -5,14 +5,12 @@ import { DataListingDatumType } from './DataListing';
 import { TokenListing } from '@/services/token-listings/interface';
 import { fetchTokenListingsApi } from '@/utilities/api';
 
-type UtxoEntry = {
-  id: string;
-  value: bigint;
-  utxo: UTxO;
-  datum: DataListingDatumType;
-};
+export const BidDatumSchema = Data.Object({
+  dataBuyer: Data.Bytes(),
+});
 
-type DataListingUTxOs = Array<{ utxo: UTxO; datum: DataListingDatumType }>;
+export type BidDatumType = Data.Static<typeof BidDatumSchema>;
+export const BidDatum = BidDatumSchema as unknown as BidDatumType;
 
 const DataListingRedeemerSchema = Data.Enum([Data.Literal('Redeem'), Data.Literal('Purchase')]);
 type DataListingRedeemer = Data.Static<typeof DataListingRedeemerSchema>;
