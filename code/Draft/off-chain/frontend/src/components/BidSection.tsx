@@ -38,6 +38,9 @@ function BidSection() {
 
   const [buyStatus, setBuyStatus] = useState<BuyStatus>(BuyStatus.Initiating);
   const [tokenAssetClass, setTokenAssetClass] = useState<string>('');
+
+  const [openBidAssetClass, setOpenBidAssetClass] = useState<string | null>(null);
+  const [bidAmount, setBidAmount] = useState<number>(0);
   const [tokens, setTokens] = useState<TokenListing[]>([]);
 
   useEffect(() => {
@@ -50,6 +53,10 @@ function BidSection() {
       return text;
     }
     return text.substr(0, startChars) + separator + text.substr(text.length - endChars);
+  };
+
+  const handleBidAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBidAmount(Number(e.target.value));
   };
 
   const handleCopy = useCallback((textToCopy: string) => {
@@ -72,8 +79,16 @@ function BidSection() {
     setTokens(tokenListings);
   };
 
+  const submitBid = (assetClass: string) => {
+    console.log('Submitting bid for', assetClass, 'of amount', bidAmount);
+    // Perform the actual bid submission here
+
+    // Close the bid input
+    setOpenBidAssetClass(null);
+  };
+
   return (
-    <div className="shadow-[0_4px_0px_0px_rgba(0,0,0,0.25)] w-[864px] bg-zinc-50 border border-zinc-600 rounded-xl p-9 mt-5 overflow-x-auto">
+    <section className="shadow-[0_4px_0px_0px_rgba(0,0,0,0.25)] w-[864px] bg-zinc-50 border border-zinc-600 rounded-xl p-9 mt-5 overflow-x-auto">
       <div className="flex flex-row justify-between items-center mb-5">
         <h2>Bid on Tokens</h2>
         <button
@@ -110,18 +125,38 @@ function BidSection() {
               </td>
               <td className="p-3 border-b border-zinc-700">{token?.meta}</td>
               <td className="p-3 border-b border-zinc-700">
-                <button
-                  onClick={() => handleBid(token.tokenAssetClass)}
-                  className="rounded-lg p-2 text-zinc-50 bg-zinc-800 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)] font-quicksand font-bold active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)]"
-                >
-                  Place Bid
-                </button>
+                {openBidAssetClass === token.tokenAssetClass ? (
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      placeholder="Enter ADA"
+                      className="p-2 rounded-lg border border-zinc-600"
+                      onChange={handleBidAmountChange}
+                    />
+                    <button
+                      onClick={() => submitBid(token.tokenAssetClass)}
+                      className="rounded-lg p-2 text-zinc-50 bg-zinc-800"
+                    >
+                      Submit
+                    </button>
+                    <button onClick={() => setOpenBidAssetClass(null)} className="text-red-500">
+                      ❌
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setOpenBidAssetClass(token.tokenAssetClass)}
+                    className="rounded-lg p-2 text-zinc-50 bg-zinc-800 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)] font-quicksand font-bold active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)]"
+                  >
+                    Place Bid
+                  </button>
+                )}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
+    </section>
   );
 }
 
