@@ -4,6 +4,7 @@ import { storage } from '@/utilities/storage/index';
 
 /**
  *  Runs when a data listing is made, removes data association from wallet and sets it to the DataToken
+ * Add validation rule to ensure that the wallet address is the same as the one that has this token asset class
  */
 const associateDataWithToken = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {

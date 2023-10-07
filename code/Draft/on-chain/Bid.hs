@@ -6,46 +6,49 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use newtype instead of data" #-}
 
 
 module Bid where
 
-import           Plutus.V1.Ledger.Value    (AssetClass, assetClassValueOf)
+import           Plutus.V1.Ledger.Value    (AssetClass (AssetClass),
+                                            assetClassValueOf)
 import           Plutus.V2.Ledger.Api      (BuiltinData, Datum (Datum),
                                             OutputDatum (NoOutputDatum, OutputDatum, OutputDatumHash),
                                             PubKeyHash,
                                             ScriptContext (scriptContextTxInfo),
-                                            TxInfo, Validator, Value,
-                                            mkValidatorScript)
+                                            TxInfo,
+                                            UnsafeFromData (unsafeFromBuiltinData),
+                                            Validator, Value, mkValidatorScript)
 import           Plutus.V2.Ledger.Contexts (findDatum, txSignedBy, valuePaidTo)
-import           PlutusTx                  (FromData (fromBuiltinData), compile,
-                                            unstableMakeIsData)
+import           PlutusTx                  (CompiledCode,
+                                            FromData (fromBuiltinData),
+                                            applyCode, compile, liftCode,
+                                            makeLift, unstableMakeIsData)
 import           PlutusTx.Prelude          (Bool, Eq ((==)), Maybe (..),
-                                            traceError, traceIfFalse, ($))
+                                            traceError, traceIfFalse, ($), (.))
 import qualified Prelude
-import           Utilities                 (wrapValidator, writeValidatorToFile)
+import           Utilities                 (wrapValidator, writeCodeToFile,
+                                            writeValidatorToFile)
 
 
----------------------------------------------------------------------------------------------------
------------------------------ ON-CHAIN: HELPER FUNCTIONS/TYPES ------------------------------------
-
-{-# INLINABLE parseBidDatum #-}
-parseBidDatum :: OutputDatum -> TxInfo -> Maybe BidDatum
-parseBidDatum o info = case o of
-    NoOutputDatum         -> traceError "Found Bid output but NoOutputDatum"
-    OutputDatum (Datum d) -> PlutusTx.fromBuiltinData d
-    OutputDatumHash dh    -> do
-                           Datum d <- findDatum dh info
-                           PlutusTx.fromBuiltinData d
 
 ---------------------------------------------------------------------------------------------------
 ------------------------------------ ON-CHAIN: VALIDATOR ------------------------------------------
 
+-- Bid's Parameters
+data BidParams = BidParams
+    {
+     dataTokenNFT :: AssetClass
+    }
+PlutusTx.makeLift ''BidParams
+
+
 -- Datum containing all the relevant information
 data BidDatum = BidDatum
     {
-     dataTokenNFT :: AssetClass
-    , dataBuyer   :: PubKeyHash
+     dataBuyer   :: PubKeyHash
     } deriving Prelude.Show
 unstableMakeIsData ''BidDatum
 
@@ -55,8 +58,8 @@ unstableMakeIsData ''BidRedeemer
 
 
 {-# INLINABLE mkValidator #-}
-mkValidator :: BidDatum -> BidRedeemer -> ScriptContext -> Bool
-mkValidator dat r ctx = case r of
+mkValidator :: BidParams -> BidDatum -> BidRedeemer -> ScriptContext -> Bool
+mkValidator p dat r ctx = case r of
         Sell   -> traceIfFalse "token not given to buyer" buyerGetsToken
         Redeem -> traceIfFalse "buyer's signature missing" checkSignedByBuyer
 
@@ -71,17 +74,35 @@ mkValidator dat r ctx = case r of
     valuePaidToBuyer = valuePaidTo info $ dataBuyer dat
 
     buyerGetsToken :: Bool
-    buyerGetsToken = assetClassValueOf valuePaidToBuyer (dataTokenNFT dat) == 1
+    buyerGetsToken = assetClassValueOf valuePaidToBuyer (dataTokenNFT p) == 1
 
 ---------------------------------------------------------------------------------------------------
------------------------------- COMPILE AND SERIALIZE VALIDATOR ------------------------------------
+------------------------------ COMPILE VALIDATOR ------------------------------------
 
 {-# INLINABLE  mkWrappedValidator #-}
-mkWrappedValidator :: BuiltinData -> BuiltinData -> BuiltinData -> ()
-mkWrappedValidator = wrapValidator mkValidator
+mkWrappedValidator :: BidParams -> BuiltinData -> BuiltinData -> BuiltinData -> ()
+mkWrappedValidator = wrapValidator . mkValidator
 
-validator :: Validator
-validator = mkValidatorScript $$(compile [|| mkWrappedValidator ||])
+validator :: BidParams -> Validator
+validator params= mkValidatorScript $
+    $$(compile [|| mkWrappedValidator ||])
+    `PlutusTx.applyCode`
+    PlutusTx.liftCode params
 
-saveBidScript :: Prelude.IO ()
-saveBidScript = writeValidatorToFile "assets/bid.plutus" validator
+{-# INLINABLE mkWrappedValidatorLucid #-}
+--                         CurrencySymbol  TokenName,    datum             redeemer      context
+mkWrappedValidatorLucid :: BuiltinData -> BuiltinData -> BuiltinData -> BuiltinData -> BuiltinData -> ()
+mkWrappedValidatorLucid cs tn = wrapValidator $ mkValidator bidParams
+    where
+        bidParams = BidParams
+            { dataTokenNFT = AssetClass (unsafeFromBuiltinData cs, unsafeFromBuiltinData tn)
+            }
+
+validatorCode :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinData -> BuiltinData -> ())
+validatorCode = $$(compile [|| mkWrappedValidatorLucid ||])
+
+---------------------------------------------------------------------------------------------------
+------------------------------ SERIALIZE VALIDATOR ------------------------------------
+
+saveBidCode :: Prelude.IO ()
+saveBidCode = writeCodeToFile "assets/bid.plutus" validatorCode

@@ -6,6 +6,7 @@ import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 import { DataListingDatum, DataListingDatumType } from './DataListing';
 import { signAndSubmitTx } from '@/utilities/utilities';
 import PostBuyComponent from './PostBuyComponent';
+import BidSection from './BidSection';
 
 type UtxoEntry = {
   id: string;
@@ -275,6 +276,7 @@ WHEN ADDDING STAKE CREDENTIAL:
           <PostBuyComponent buyStatus={buyStatus} tokenAssetClass={tokenAssetClass} setBuyStatus={setBuyStatus} />
         </div>
       </div>
+      <BidSection />
     </div>
   );
 }
