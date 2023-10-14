@@ -1,7 +1,7 @@
 // pages/api/associateDataWithToken.js
 import { NextApiRequest, NextApiResponse } from 'next';
 import { storage } from '@/utilities/storage/index';
-import { tokenListingStorageService } from '@/services/token-listings';
+import { redisTokenListings, tokenListingStorageService } from '@/services/token-listings';
 
 /**
  * Runs when a token is minted, removes data association from wallet and sets it to the DataToken
@@ -36,6 +36,10 @@ const associateDataWithToken = async (req: NextApiRequest, res: NextApiResponse)
 
   // Adds token listing to the database, so any bidders can find all available tokens
   await tokenListingStorageService.addTokenListing({
+    owner: walletAddr,
+    tokenAssetClass: dataTokenAssetClass,
+  });
+  await redisTokenListings.addTokenListing({
     owner: walletAddr,
     tokenAssetClass: dataTokenAssetClass,
   });

@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'fs/promises';
+import { IBaseFileKeyValueStorage } from './base-key-value-interface';
 
-export class BaseFileKeyValueStorage<T> {
+export class BaseFileKeyValueStorage<T> implements IBaseFileKeyValueStorage<T> {
   constructor(protected readonly filePath: string) {}
 
   protected async readFromFile(): Promise<Map<string, T>> {
@@ -15,13 +16,13 @@ export class BaseFileKeyValueStorage<T> {
     await writeFile(this.filePath, fileContent, 'utf8');
   }
 
-  protected async addEntry(key: string, value: T): Promise<void> {
+  async addEntry(key: string, value: T): Promise<void> {
     const storage = await this.readFromFile();
     storage.set(key, value);
     await this.writeToFile(storage);
   }
 
-  protected async retrieveEntry(key: string): Promise<T | null> {
+  async retrieveEntry(key: string): Promise<T | null> {
     const storage = await this.readFromFile();
     const data = storage.get(key);
     if (!data) {
@@ -30,13 +31,13 @@ export class BaseFileKeyValueStorage<T> {
     return data;
   }
 
-  protected async updateEntry(key: string, value: T): Promise<void> {
+  async updateEntry(key: string, value: T): Promise<void> {
     const storage = await this.readFromFile();
     storage.set(key, value);
     await this.writeToFile(storage);
   }
 
-  protected async removeEntry(key: string): Promise<void> {
+  async removeEntry(key: string): Promise<void> {
     const storage = await this.readFromFile();
     storage.delete(key);
     await this.writeToFile(storage);
