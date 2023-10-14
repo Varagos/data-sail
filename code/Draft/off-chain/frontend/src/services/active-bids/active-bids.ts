@@ -10,10 +10,9 @@ export default class ActiveBidsFileStorage extends BaseFileKeyValueStorage<strin
   }
 
   async addActiveBid(wallet: string, activeBid: ActiveBid): Promise<void> {
-    const value = JSON.stringify(activeBid);
     const existingSerialized = await this.retrieveEntry(wallet);
     const existing = existingSerialized ? JSON.parse(existingSerialized) : [];
-    existing.push(value);
+    existing.push(activeBid);
     const newValue = JSON.stringify(existing);
     await this.addEntry(wallet, newValue);
   }

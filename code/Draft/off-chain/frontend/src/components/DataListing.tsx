@@ -28,7 +28,6 @@ export const DataListingDatumSchema = Data.Object({
   dataSeller: Data.Bytes(),
   // In lovelace
   price: Data.Integer(),
-  // dataLocation: Data.Bytes(),
 });
 export type DataListingDatumType = Data.Static<typeof DataListingDatumSchema>;
 export const DataListingDatum = DataListingDatumSchema as unknown as DataListingDatumType;
@@ -36,7 +35,6 @@ export const DataListingDatum = DataListingDatumSchema as unknown as DataListing
 function DataListing() {
   const { appState, setAppState } = useContext(AppStateContext);
   const { lucid, wAddr, dataTokenPolicyIdHex, dataListingScript } = appState;
-  const [randomData, setRandomData] = useState('');
   // Poll every 3s
   // const data = usePollingData(3000);
   const [data, fetchWalletData] = useFetchWalletData();
@@ -177,6 +175,8 @@ function DataListing() {
         </div>
         <hr className="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
 
+        <h2 className="text-2xl mb-4">Ask</h2>
+
         <div className="flex flex-col mb-2">
           <input
             type="text"
@@ -192,13 +192,6 @@ function DataListing() {
 
       <hr className="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
       <AcceptBid />
-      {/* <button
-        onClick={async () => {
-          await fetch('/api/testRedis');
-        }}
-      >
-        Test redis
-      </button> */}
     </div>
   );
 }

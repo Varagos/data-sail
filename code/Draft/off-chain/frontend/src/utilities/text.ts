@@ -1,5 +1,8 @@
 // Function to truncate text in the middle
 export const truncateMiddle = (text: string, startChars = 6, endChars = 6, separator = '...') => {
+  if (!text) {
+    return '';
+  }
   if (text.length <= startChars + endChars) {
     return text;
   }

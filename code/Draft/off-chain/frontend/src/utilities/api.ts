@@ -53,7 +53,7 @@ export async function retrieveHistoryForBuyer(
 }
 
 export async function fetchTokenListingsApi(): Promise<TokenListing[]> {
-  const res = await fetch('/api/fetchTokenListings', {
+  const res = await fetch('/api/tokenListing/fetchAll', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -86,6 +86,40 @@ export class ActiveBidsApi {
     } else {
       console.log('Error:', res.status);
       throw new Error('Error fetching active bids');
+    }
+  }
+
+  static async createActiveBid(wallet: string, activeBid: ActiveBid): Promise<void> {
+    const res = await fetch('/api/activeBid/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ wallet, activeBid }),
+    });
+
+    if (res.ok) {
+      console.log('Active bid created');
+    } else {
+      console.log('Error:', res.status);
+      throw new Error('Error creating active bid');
+    }
+  }
+
+  static async deleteActiveBid(wallet: string, bidId: string): Promise<void> {
+    const res = await fetch('/api/activeBid/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ wallet, bidId }),
+    });
+
+    if (res.ok) {
+      console.log('Active bid deleted');
+    } else {
+      console.log('Error:', res.status);
+      throw new Error('Error deleting active bid');
     }
   }
 }

@@ -1,4 +1,4 @@
-import { activeBidsStorageService, redisActiveBids } from '@/services/active-bids';
+import { activeBidsStorageService } from '@/services/active-bids';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     await activeBidsStorageService.removeActiveBid(wallet as string, bidId as string);
-    await redisActiveBids.removeActiveBid(wallet as string, bidId as string);
+    await redisActiveBids.addActiveBid(wallet, activeBid);
     res.status(200).json({ message: `Deleted active bid with ID ${bidId}` });
   } catch (error) {
     console.error(error);

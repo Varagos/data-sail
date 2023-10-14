@@ -9,7 +9,6 @@ import { signAndSubmitTx } from '@/utilities/utilities';
 import { truncateMiddle } from '@/utilities/text';
 import { IoLinkOutline } from 'react-icons/io5';
 import type { ActiveBid } from '@/services/active-bids/interface';
-import { waitForDebugger } from 'inspector';
 
 export const BidDatumSchema = Data.Object({
   dataBuyer: Data.Bytes(),
@@ -23,21 +22,17 @@ export type BidRedeemerType = Data.Static<typeof BidRedeemerSchema>;
 export const BidRedeemer = BidRedeemerSchema as unknown as BidRedeemerType;
 
 function BidSection() {
-  const { appState, setAppState } = useContext(AppStateContext);
-  const { lucid, wAddr, dataTokenPolicyIdHex, dataListingScript } = appState;
+  const { appState } = useContext(AppStateContext);
+  const { lucid, wAddr } = appState;
 
   const [openBidAssetClass, setOpenBidAssetClass] = useState<string | null>(null);
   const [bidAmount, setBidAmount] = useState<bigint>(0n);
   const [tokens, setTokens] = useState<TokenListing[]>([]);
 
-  const [activeBids, setActiveBids] = useState<ActiveBid[]>([]); // TODO: Replace with actual bids
-
   // Assume bids is an array of objects that contain the user's active bids
-  // For demonstration, each object has assetClass, date, and amount
-  const [bids, setBids] = useState([
-    { assetClass: 'abcd1234', date: '2022-12-01', amount: 20 },
-    { assetClass: 'efgh5678', date: '2022-12-05', amount: 40 },
-    // ...more bids
+  const [bids, setBids] = useState<ActiveBid[]>([
+    // { id: '1', address: 'address1', tokenAssetClass: 'abcd1234', date: '2022-12-01', amount: 20 },
+    // { id: '2', address: 'address2', tokenAssetClass: 'efgh5678', date: '2022-12-05', amount: 40 },
   ]);
 
   useEffect(() => {
@@ -45,7 +40,7 @@ function BidSection() {
     async function fetchActiveBidsApi(wallet: string) {
       const activeBids = await ActiveBidsApi.fetchActiveBids(wallet);
       console.log('activeBids', activeBids);
-      setActiveBids(activeBids);
+      setBids(activeBids);
     }
     fetchActiveBidsApi(wAddr);
   }, [wAddr]);
@@ -68,10 +63,6 @@ function BidSection() {
       }
     );
   }, []);
-
-  const handleBid = async (assetClass: string) => {
-    console.log('handleBid', assetClass);
-  };
 
   const fetchTokenListings = async () => {
     const tokenListings = await fetchTokenListingsApi();
@@ -111,15 +102,52 @@ function BidSection() {
 
     // Close the bid input
     setOpenBidAssetClass(null);
+    const newBid = {
+      id: txId,
+      address: wAddr, // TODO: Check if this is needed
+      tokenAssetClass: tokenAssetClass,
+      amount: Number(bidAmount),
+      date: new Date().toISOString(),
+    };
+    await ActiveBidsApi.createActiveBid(wAddr, newBid);
+    setBids((prevBids) => [...prevBids, newBid]);
   };
 
   // Function to redeem bid
-  const redeemBid = (assetClass: string) => {
-    console.log(`Redeeming bid for ${assetClass}`);
-    // Implement your redeem logic here
+  const redeemBid = async (bidId: string, assetClass: string) => {
+    console.log(`Redeeming bid for ${bidId}, ${assetClass}`);
+
+    const redeemer = Data.to<BidRedeemerType>('Redeem', BidRedeemer);
+    const pkh = getAddressDetails(wAddr!).paymentCredential?.hash || '';
+
+    const [tokenPolicyId, tokenNameHex] = extractPolicyIdFromAssetClass(assetClass);
+    const spendingValidator = getFinalScript(tokenPolicyId, tokenNameHex);
+    const validatorAddress = lucid!.utils.validatorToAddress(spendingValidator);
+    const validatorUtxos = await lucid!.utxosAt(validatorAddress);
+    const bidUtxo = validatorUtxos.find((utxo) => utxo.txHash === bidId);
+    console.log('bidUtxo', bidUtxo);
+    if (!bidUtxo) throw new Error('Bid UTXO not found');
+
+    try {
+      const tx = await lucid!
+        .newTx()
+        .collectFrom([bidUtxo], redeemer)
+        .attachSpendingValidator(spendingValidator)
+        .addSignerKey(pkh)
+        .complete({ nativeUplc: false });
+
+      const txId = await signAndSubmitTx(tx);
+      console.log('txId', txId);
+    } catch (err) {
+      console.error('[acceptBid] error');
+      console.error(err);
+      return;
+    }
 
     // Remove the redeemed bid from the bids state
-    setBids(bids.filter((bid) => bid.assetClass !== assetClass));
+    setBids(bids.filter((bid) => bid.tokenAssetClass !== assetClass));
+
+    ActiveBidsApi.deleteActiveBid(wAddr!, assetClass);
   };
 
   return (
@@ -217,11 +245,14 @@ function BidSection() {
           <tbody>
             {bids.map((bid, index) => (
               <tr key={index}>
-                <td className="p-3 border-b border-zinc-700">{truncateMiddle(bid.assetClass)}</td>
+                <td className="p-3 border-b border-zinc-700">{truncateMiddle(bid.tokenAssetClass)}</td>
                 <td className="p-3 border-b border-zinc-700">{bid.date}</td>
                 <td className="p-3 border-b border-zinc-700">{bid.amount} ADA</td>
                 <td className="p-3 border-b border-zinc-700">
-                  <button onClick={() => redeemBid(bid.assetClass)} className="rounded-lg p-2 text-zinc-50 bg-red-600">
+                  <button
+                    onClick={() => redeemBid(bid.id, bid.tokenAssetClass)}
+                    className="rounded-lg p-2 text-zinc-50 bg-red-600"
+                  >
                     Redeem
                   </button>
                 </td>

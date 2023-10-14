@@ -220,7 +220,7 @@ const AcceptBid = () => {
         className="text-3xl text-zinc-600 active:text-zinc-800 absolute top-5 right-5"
         onClick={() => getBidsForAllTokens(lucid!)}
       />
-      <h2 className="text-2xl mb-4">Your Tokens</h2>
+      <h2 className="text-2xl mb-4">Your Tokens & Their Bids</h2>
 
       {/* Loop through the tokens */}
       {tokens && tokens.length > 0 ? (

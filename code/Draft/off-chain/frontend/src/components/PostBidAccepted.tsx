@@ -15,8 +15,7 @@ type TokenValidity =
 
 const PostBidAccepted = () => {
   const { appState } = useContext(AppStateContext);
-  // This is the dataTokenPolicyIdHex of the token the seller has minted now(if they have minted one)
-  const { lucid, wAddr, dataTokenPolicyIdHex } = appState;
+  const { lucid, wAddr } = appState;
 
   const [walletTokens, setWalletTokens] = useState<string[]>([]);
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
@@ -48,7 +47,6 @@ const PostBidAccepted = () => {
   }
 
   const scanWallet = async () => {
-    // Implement wallet scanning logic
     if (!lucid) {
       console.error('Lucid not initialized');
       return;

@@ -29,7 +29,7 @@ export class BaseRedisStorage implements IBaseFileKeyValueStorage<string> {
   }
 
   async retrieveEntry(key: string): Promise<string | null> {
-    return this.client.get('key');
+    return this.client.get(key);
   }
 
   async updateEntry(key: string, value: string): Promise<void> {
