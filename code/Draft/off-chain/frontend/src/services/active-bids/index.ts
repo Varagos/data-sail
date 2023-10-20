@@ -6,5 +6,5 @@ import RedisActiveBids from './redis-active-bids';
 // export const activeBidsStorageService: IActiveBids = new ActiveBidsFileStorage();
 
 const baseRedisStorage = await BaseRedisStorage.getInstance();
-const redisActiveBids: IActiveBids = new RedisActiveBids(baseRedisStorage);
+const redisActiveBids = new RedisActiveBids(baseRedisStorage);
 export { redisActiveBids };

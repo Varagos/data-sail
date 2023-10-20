@@ -15,7 +15,7 @@ import { IoReloadCircleSharp } from 'react-icons/io5';
 import { truncateMiddle } from '@/utilities/text';
 import { findSellerAddress } from '@/utilities/pub-key-hash-to-address';
 import { signAndSubmitTx } from '@/utilities/utilities';
-import { TokenListingsApi } from '@/utilities/api';
+import { ActiveBidsApi, TokenListingsApi } from '@/utilities/api';
 
 type BidUTxOs = Array<{ utxo: UTxO; datum: BidDatumType }>;
 
@@ -90,42 +90,6 @@ const AcceptBid = () => {
     setMyTokens((prevTokens) =>
       prevTokens.map((token) => (token.id === tokenId ? { ...token, isBidsVisible: !token.isBidsVisible } : token))
     );
-  };
-
-  const acceptBid = async (tokenListing: MyTokenListing, bid: TokenBid) => {
-    if (!lucid || !wAddr) {
-      console.error('[acceptBid]: lucid not initialized');
-      return;
-    }
-    const { utxo, buyerPubKeyHash } = bid;
-    const { id, spendingValidator } = tokenListing;
-
-    // We have buyer pubkeyhash, need to find the address
-    const buyerAddress = await findSellerAddress(utxo, buyerPubKeyHash);
-
-    const redeemer = Data.to<BidRedeemerType>('Sell', BidRedeemer);
-
-    const pkh: string = getAddressDetails(wAddr).paymentCredential?.hash || '';
-
-    try {
-      const tx = await lucid
-        .newTx()
-        .payToAddress(buyerAddress, {
-          [id]: 1n,
-        })
-        .collectFrom([utxo], redeemer)
-        .attachSpendingValidator(spendingValidator)
-        .addSignerKey(pkh)
-        .complete({ nativeUplc: false });
-
-      const txId = await signAndSubmitTx(tx);
-      console.log('txId', txId);
-
-      await TokenListingsApi.deleteTokenListing(id);
-    } catch (err) {
-      console.error('[acceptBid] error');
-      console.error(err);
-    }
   };
 
   async function fetchWalletTokens(lucid: Lucid): Promise<string[]> {
@@ -217,12 +181,51 @@ const AcceptBid = () => {
     }
   }
 
+  const acceptBid = async (tokenListing: MyTokenListing, bid: TokenBid) => {
+    if (!lucid || !wAddr) {
+      console.error('[acceptBid]: lucid not initialized');
+      return;
+    }
+    const { utxo, buyerPubKeyHash } = bid;
+    const { id, spendingValidator } = tokenListing;
+
+    // We have buyer pubkeyhash, need to find the address
+    const buyerAddress = await findSellerAddress(utxo, buyerPubKeyHash);
+
+    const redeemer = Data.to<BidRedeemerType>('Sell', BidRedeemer);
+
+    const pkh: string = getAddressDetails(wAddr).paymentCredential?.hash || '';
+
+    try {
+      const tx = await lucid
+        .newTx()
+        .payToAddress(buyerAddress, {
+          [id]: 1n,
+        })
+        .collectFrom([utxo], redeemer)
+        .attachSpendingValidator(spendingValidator)
+        .addSignerKey(pkh)
+        .complete({ nativeUplc: false });
+
+      const txId = await signAndSubmitTx(tx);
+      console.log('txId', txId);
+
+      await TokenListingsApi.deleteTokenListing(id);
+      // We should clear all bids for this token(from any user)
+      // await ActiveBidsApi.
+    } catch (err) {
+      console.error('[acceptBid] error');
+      console.error(err);
+    }
+  };
+
   return (
     <div className="shadow-[0_4px_0px_0px_rgba(0,0,0,0.25)] w-[664px] bg-zinc-50 border border-zinc-600 rounded-xl p-9 mb-5 relative">
       <IoReloadCircleSharp
         className="text-3xl text-zinc-600 active:text-zinc-800 absolute top-5 right-5"
         onClick={() => getBidsForAllTokens(lucid!)}
       />
+
       <h2 className="text-2xl mb-4">Your Tokens & Their Bids</h2>
 
       {/* Loop through the tokens */}

@@ -5,8 +5,8 @@ export default class RedisActiveBids implements IActiveBids {
   private baseRedis: BaseRedisStorage;
   static PREFIX = 'active-bids';
 
-  private getKeyName(tokenAssetClass: string) {
-    return `${RedisActiveBids.PREFIX}:${tokenAssetClass}`;
+  private getKeyName(wallet: string) {
+    return `${RedisActiveBids.PREFIX}:${wallet}`;
   }
 
   constructor(baseRedis: BaseRedisStorage) {
@@ -17,7 +17,7 @@ export default class RedisActiveBids implements IActiveBids {
     const key = this.getKeyName(wallet);
     const existingSerialized = await this.baseRedis.retrieveEntry(key);
 
-    const existing = existingSerialized ? JSON.parse(existingSerialized) : [];
+    const existing: ActiveBid[] = existingSerialized ? JSON.parse(existingSerialized) : [];
     existing.push(activeBid);
     const newValue = JSON.stringify(existing);
     await this.baseRedis.addEntry(key, newValue);
@@ -37,9 +37,10 @@ export default class RedisActiveBids implements IActiveBids {
   }
 
   async removeActiveBid(wallet: string, bidId: string): Promise<void> {
+    console.log('Removing active bid', wallet, bidId);
     const key = this.getKeyName(wallet);
     const existingSerialized = await this.baseRedis.retrieveEntry(key);
-    const existing = existingSerialized ? JSON.parse(existingSerialized) : [];
+    const existing: ActiveBid[] = existingSerialized ? JSON.parse(existingSerialized) : [];
     const filtered = existing.filter((bid: ActiveBid) => bid.id !== bidId);
     const newValue = JSON.stringify(filtered);
     await this.baseRedis.updateEntry(key, newValue);

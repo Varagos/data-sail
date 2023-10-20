@@ -72,7 +72,7 @@ export class TokenListingsApi {
 
   static async deleteTokenListing(tokenAssetClass: string): Promise<void> {
     const res = await fetch('/api/tokenListing/delete', {
-      method: 'DELETE',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },

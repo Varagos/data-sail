@@ -148,7 +148,7 @@ function BidSection() {
     // Remove the redeemed bid from the bids state
     setBids(bids.filter((bid) => bid.tokenAssetClass !== assetClass));
 
-    ActiveBidsApi.deleteActiveBid(wAddr!, assetClass);
+    await ActiveBidsApi.deleteActiveBid(wAddr!, bidId);
   };
 
   return (

@@ -1,5 +1,5 @@
 export type ActiveBid = {
-  id: string; // txHash#outputIndex
+  id: string; // txHash Used for now, could be txHash#outputIndex to support making multiple bids per tx
   address: string;
   tokenAssetClass: string;
   amount: number;
