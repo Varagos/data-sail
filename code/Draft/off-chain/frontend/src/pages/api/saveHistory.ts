@@ -7,6 +7,7 @@ const saveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
     return res.status(405).end();
   }
+  console.info(`[${new Date().toLocaleTimeString()}]: POST /api/saveHistory`);
 
   const data = req.body.data;
   const walletAddr = req.body.walletAddr;

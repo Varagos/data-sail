@@ -51,22 +51,40 @@ export async function retrieveHistoryForBuyer(
     throw new Error('Error retrieving history for buyer');
   }
 }
+export class TokenListingsApi {
+  static async fetchTokenListings(): Promise<TokenListing[]> {
+    const res = await fetch('/api/tokenListing/fetchAll', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-export async function fetchTokenListingsApi(): Promise<TokenListing[]> {
-  const res = await fetch('/api/tokenListing/fetchAll', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+    if (res.ok) {
+      const { data: tokenListings } = await res.json();
+      console.log('Token Listings:', tokenListings);
+      return tokenListings as TokenListing[];
+    } else {
+      console.log('Error:', res.status);
+      throw new Error('Error fetching token listings');
+    }
+  }
 
-  if (res.ok) {
-    const { data: tokenListings } = await res.json();
-    console.log('Token Listings:', tokenListings);
-    return tokenListings as TokenListing[];
-  } else {
-    console.log('Error:', res.status);
-    throw new Error('Error fetching token listings');
+  static async deleteTokenListing(tokenAssetClass: string): Promise<void> {
+    const res = await fetch('/api/tokenListing/delete', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tokenAssetClass }),
+    });
+
+    if (res.ok) {
+      console.log('Token listing deleted');
+    } else {
+      console.log('Error:', res.status);
+      throw new Error('Error deleting token listing');
+    }
   }
 }
 

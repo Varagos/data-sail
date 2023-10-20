@@ -15,13 +15,15 @@ import { IoReloadCircleSharp } from 'react-icons/io5';
 import { truncateMiddle } from '@/utilities/text';
 import { findSellerAddress } from '@/utilities/pub-key-hash-to-address';
 import { signAndSubmitTx } from '@/utilities/utilities';
+import { TokenListingsApi } from '@/utilities/api';
 
 type BidUTxOs = Array<{ utxo: UTxO; datum: BidDatumType }>;
 
-type TokenBid = { id: string; buyer: string; price: bigint; utxo: UTxO };
+type TokenBid = { id: string; buyerPubKeyHash: string; price: bigint; utxo: UTxO };
 type TokenBids = TokenBid[];
 
-type TokenListing = {
+type MyTokenListing = {
+  // assetClass
   id: string;
   name: string;
   bids: TokenBids;
@@ -59,9 +61,8 @@ export const getFinalScript = (tokenPolicyIdHex: string, tokenNameHex: string): 
 
 const AcceptBid = () => {
   const { appState, setAppState } = useContext(AppStateContext);
-  // This is the dataTokenPolicyIdHex of the token the seller has minted now(if they have minted one)
-  const { lucid, wAddr, dataTokenPolicyIdHex } = appState;
-  const [tokens, setTokens] = useState<TokenListing[]>([]);
+  const { lucid, wAddr } = appState;
+  const [myTokens, setMyTokens] = useState<MyTokenListing[]>([]);
   //   [
   //     {
   //       id: '1',
@@ -86,21 +87,21 @@ const AcceptBid = () => {
   }, [lucid]);
 
   const toggleBids = (tokenId: string) => {
-    setTokens((prevTokens) =>
+    setMyTokens((prevTokens) =>
       prevTokens.map((token) => (token.id === tokenId ? { ...token, isBidsVisible: !token.isBidsVisible } : token))
     );
   };
 
-  const acceptBid = async (tokenListing: TokenListing, bid: TokenBid) => {
+  const acceptBid = async (tokenListing: MyTokenListing, bid: TokenBid) => {
     if (!lucid || !wAddr) {
       console.error('[acceptBid]: lucid not initialized');
       return;
     }
-    const { utxo, buyer } = bid;
+    const { utxo, buyerPubKeyHash } = bid;
     const { id, spendingValidator } = tokenListing;
 
     // We have buyer pubkeyhash, need to find the address
-    const buyerAddress = await findSellerAddress(utxo, buyer);
+    const buyerAddress = await findSellerAddress(utxo, buyerPubKeyHash);
 
     const redeemer = Data.to<BidRedeemerType>('Sell', BidRedeemer);
 
@@ -119,6 +120,8 @@ const AcceptBid = () => {
 
       const txId = await signAndSubmitTx(tx);
       console.log('txId', txId);
+
+      await TokenListingsApi.deleteTokenListing(id);
     } catch (err) {
       console.error('[acceptBid] error');
       console.error(err);
@@ -184,7 +187,7 @@ const AcceptBid = () => {
       return {
         id: bidUtxo.utxo.txHash + '#' + bidUtxo.utxo.outputIndex,
         // This is the pubkeyHash, could query the backend for the full address if needed
-        buyer: bidUtxo.datum.dataBuyer,
+        buyerPubKeyHash: bidUtxo.datum.dataBuyer,
         price: priceInAda,
         utxo: bidUtxo.utxo,
       };
@@ -197,7 +200,7 @@ const AcceptBid = () => {
 
       //   const addresses = spendingValidators.map((spV) => lucid.utils.validatorToAddress(spV));
       //   console.log('addresses', addresses);
-      const tokenListings: TokenListing[] = await Promise.all(
+      const tokenListings: MyTokenListing[] = await Promise.all(
         tokens.map(async (tokenAssetClass, index) => {
           const [tokenPolicyId, tokenNameHex] = extractPolicyIdFromAssetClass(tokenAssetClass);
           const spendingValidator = getFinalScript(tokenPolicyId, tokenNameHex);
@@ -207,7 +210,7 @@ const AcceptBid = () => {
         })
       );
       console.log('tokenListings', tokenListings);
-      setTokens(tokenListings);
+      setMyTokens(tokenListings);
     } catch (err) {
       console.log('[getBidsForAllTokens] error');
       console.error(err);
@@ -223,8 +226,8 @@ const AcceptBid = () => {
       <h2 className="text-2xl mb-4">Your Tokens & Their Bids</h2>
 
       {/* Loop through the tokens */}
-      {tokens && tokens.length > 0 ? (
-        tokens.map((token, index) => (
+      {myTokens && myTokens.length > 0 ? (
+        myTokens.map((token, index) => (
           <div key={index} className="mb-4">
             <div className="flex justify-between py-2 border-b">
               <a className="text-zinc-800" href={`https://preview.cexplorer.io/asset/${token.id}`}>
@@ -243,7 +246,7 @@ const AcceptBid = () => {
               <div className="pl-4 mt-2">
                 {token.bids.map((bid, bidIndex) => (
                   <div key={bidIndex} className="flex justify-between py-1">
-                    <span>{truncateMiddle(bid.buyer)}</span>
+                    <span>{truncateMiddle(bid.buyerPubKeyHash)}</span>
                     <span>{`${bid.price.toString()} ADA`}</span>
                     <button
                       onClick={() => acceptBid(token, bid)}

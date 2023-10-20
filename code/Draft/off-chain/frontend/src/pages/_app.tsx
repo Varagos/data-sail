@@ -1,3 +1,4 @@
+import type { TokenListing } from '@/services/token-listings/interface';
 import '@/styles/globals.css';
 import {
   Address,
@@ -39,11 +40,14 @@ export type AppState = {
 
   // Bid Smart Contract
   bidPlutusCode: string;
+
+  tokenListings: TokenListing[];
 };
 
 const initialAppState: AppState = {
   dataListingScript: dataListingScript,
   bidPlutusCode: bidPlutusCode,
+  tokenListings: [],
 };
 
 export const AppStateContext = createContext<{

@@ -5,6 +5,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') {
     return res.status(405).end();
   }
+  console.info('POST /api/activeBid/create');
   try {
     const { wallet, activeBid } = req.body;
     await activeBidsStorageService.addActiveBid(wallet, activeBid);

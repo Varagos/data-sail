@@ -3,7 +3,7 @@ import { Data, UTxO, getAddressDetails } from 'lucid-cardano';
 import { use, useCallback, useContext, useEffect, useState } from 'react';
 import { DataListingDatumType } from './DataListing';
 import { TokenListing } from '@/services/token-listings/interface';
-import { ActiveBidsApi, fetchTokenListingsApi } from '@/utilities/api';
+import { ActiveBidsApi, TokenListingsApi } from '@/utilities/api';
 import { extractPolicyIdFromAssetClass, getFinalScript } from './AcceptBid';
 import { signAndSubmitTx } from '@/utilities/utilities';
 import { truncateMiddle } from '@/utilities/text';
@@ -22,12 +22,12 @@ export type BidRedeemerType = Data.Static<typeof BidRedeemerSchema>;
 export const BidRedeemer = BidRedeemerSchema as unknown as BidRedeemerType;
 
 function BidSection() {
-  const { appState } = useContext(AppStateContext);
-  const { lucid, wAddr } = appState;
+  const { appState, setAppState } = useContext(AppStateContext);
+  const { lucid, wAddr, tokenListings } = appState;
 
   const [openBidAssetClass, setOpenBidAssetClass] = useState<string | null>(null);
   const [bidAmount, setBidAmount] = useState<bigint>(0n);
-  const [tokens, setTokens] = useState<TokenListing[]>([]);
+  // const [tokenListings, setTokenListings] = useState<TokenListing[]>([]);
 
   // Assume bids is an array of objects that contain the user's active bids
   const [bids, setBids] = useState<ActiveBid[]>([
@@ -44,6 +44,12 @@ function BidSection() {
     }
     fetchActiveBidsApi(wAddr);
   }, [wAddr]);
+
+  const fetchTokenListings = async () => {
+    const tokenListings = await TokenListingsApi.fetchTokenListings();
+    // setTokenListings(tokenListings);
+    setAppState((prev) => ({ ...prev, tokenListings }));
+  };
 
   useEffect(() => {
     fetchTokenListings();
@@ -63,11 +69,6 @@ function BidSection() {
       }
     );
   }, []);
-
-  const fetchTokenListings = async () => {
-    const tokenListings = await fetchTokenListingsApi();
-    setTokens(tokenListings);
-  };
 
   const submitBid = async (tokenAssetClass: string) => {
     if (!lucid || !wAddr) {
@@ -172,7 +173,7 @@ function BidSection() {
           </tr>
         </thead>
         <tbody>
-          {tokens.map((token) => (
+          {tokenListings.map((token) => (
             <tr key={token.tokenAssetClass}>
               <td className="p-3 border-b border-zinc-700">
                 <span>{truncateMiddle(token.tokenAssetClass)}</span>

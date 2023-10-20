@@ -13,7 +13,7 @@ import {
 } from 'lucid-cardano';
 import { AppStateContext, TOKEN_NAME } from '@/pages/_app';
 import { signAndSubmitTx } from '@/utilities/utilities';
-import { associateDataWithToken } from '@/utilities/api';
+import { TokenListingsApi, associateDataWithToken } from '@/utilities/api';
 import useFetchWalletData from '@/hooks/useFetchWalletData';
 import { IoReloadCircleSharp } from 'react-icons/io5';
 import AcceptBid from './AcceptBid';
@@ -142,6 +142,8 @@ function DataListing() {
       .complete();
     const txId = await signAndSubmitTx(tx);
     console.log(`DataToken locked tx: ${txId}`);
+    // Deleting token listing
+    await TokenListingsApi.deleteTokenListing(nftAssetClassHex);
   };
 
   return (

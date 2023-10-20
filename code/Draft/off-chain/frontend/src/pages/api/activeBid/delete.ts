@@ -5,6 +5,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'DELETE') {
     return res.status(405).end();
   }
+  console.info('DELETE /api/activeBid/delete');
   const { wallet, bidId } = req.body;
 
   try {

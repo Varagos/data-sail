@@ -25,14 +25,14 @@ export default class RedisActiveBids implements IActiveBids {
 
   async fetchAllActiveBids(wallet: string): Promise<ActiveBid[]> {
     const key = this.getKeyName(wallet);
-    console.log('Redis fetching active bids for key', key);
+    // console.log('Redis fetching active bids for key', key);
     const storage = await this.baseRedis.retrieveEntry(key);
-    console.log('Redis storage', storage);
+    // console.log('Redis storage', storage);
     if (!storage) {
       return [];
     }
     const activeBids = JSON.parse(storage);
-    console.log('Redis active bids', activeBids);
+    // console.log('Redis active bids', activeBids);
     return activeBids;
   }
 

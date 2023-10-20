@@ -9,10 +9,14 @@ import { NextApiRequest, NextApiResponse } from 'next';
 const blockFrostKey = process.env.BLOCKFROST_API_KEY;
 const lucid = await Lucid.new(new Blockfrost('https://cardano-preview.blockfrost.io/api/v0', blockFrostKey), 'Preview');
 
+/**
+ * Retrieves history of data associated with the given wallet
+ */
 const retrieveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {
     return res.status(405).end();
   }
+  console.info('GET /api/retrieveHistory');
 
   // console.log('Entered retrieveHistory');
   const { identifier } = req.query; // Extracting the identifier from the query string

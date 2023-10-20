@@ -1,10 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { redisTokenListings, tokenListingStorageService } from '@/services/token-listings';
+import { redisTokenListings } from '@/services/token-listings';
 
 const fetchTokenListings = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') {
     return res.status(405).end();
   }
+  console.info('GET /api/tokenListing/fetchAll');
 
   const result = await redisTokenListings.fetchAllDataListings();
 

@@ -8,10 +8,14 @@ import { NextApiRequest, NextApiResponse } from 'next';
 const blockFrostKey = process.env.BLOCKFROST_API_KEY;
 const lucid = await Lucid.new(new Blockfrost('https://cardano-preview.blockfrost.io/api/v0', blockFrostKey), 'Preview');
 
+/**
+ * Retrieves history of data associated with the given token asset class
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).end();
   }
+  console.info('POST /api/retrieveHistoryForBuyer');
 
   const { tokenAssetClass } = req.body;
 
