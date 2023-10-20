@@ -6,5 +6,5 @@ import RedisTokenListings from './redis-token-listings';
 // export const tokenListingStorageService: ITokenListings = new FileTokenListings();
 
 const baseRedisStorage = await BaseRedisStorage.getInstance();
-const redisTokenListings = new RedisTokenListings(baseRedisStorage);
+const redisTokenListings: ITokenListings = new RedisTokenListings(baseRedisStorage);
 export { redisTokenListings };

@@ -1,4 +1,4 @@
-import { activeBidsStorageService, redisActiveBids } from '@/services/active-bids';
+import { redisActiveBids } from '@/services/active-bids';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -10,8 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { wallet } = req.query;
 
   try {
-    // const bids = await activeBidsStorageService.fetchAllActiveBids(wallet as string);
-    // console.log('Fetching bids for wallet: ', wallet);
     if (typeof wallet !== 'string') {
       return res.status(400).json({ error: 'Invalid wallet address' });
     }
