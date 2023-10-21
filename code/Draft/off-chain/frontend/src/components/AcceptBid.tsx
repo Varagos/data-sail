@@ -11,7 +11,8 @@ import {
   utxoToCore,
 } from 'lucid-cardano';
 import { BidDatum, BidDatumType, BidRedeemer, BidRedeemerType } from './BidSection';
-import { IoReloadCircleSharp } from 'react-icons/io5';
+import { IoLinkOutline, IoReloadCircleSharp, IoContract } from 'react-icons/io5';
+import { FaFileContract } from 'react-icons/fa';
 import { truncateMiddle } from '@/utilities/text';
 import { findSellerAddress } from '@/utilities/pub-key-hash-to-address';
 import { signAndSubmitTx } from '@/utilities/utilities';
@@ -28,6 +29,7 @@ type MyTokenListing = {
   name: string;
   bids: TokenBids;
   spendingValidator: SpendingValidator;
+  scriptAddress: string;
   isBidsVisible: boolean;
 };
 
@@ -63,23 +65,36 @@ const AcceptBid = () => {
   const { appState, setAppState } = useContext(AppStateContext);
   const { lucid, wAddr } = appState;
   const [myTokens, setMyTokens] = useState<MyTokenListing[]>([]);
-  //   [
-  //     {
-  //       id: '1',
-  //       name: 'Token 1',
-  //       bids: [
-  //         { id: 'tx1#0', buyer: 'Buyer A', price: 100n },
-  //         { id: 'tx2#0', buyer: 'Buyer B', price: 120n },
-  //       ],
-  //       isBidsVisible: false,
-  //     },
-  //     {
-  //       id: '2',
-  //       name: 'Token 2',
-  //       bids: [],
-  //       isBidsVisible: false,
-  //     },
-  //   ]);
+
+  async function getBidsForAllTokens(lucid: Lucid) {
+    try {
+      const tokens = await fetchWalletTokens(lucid);
+
+      //   const addresses = spendingValidators.map((spV) => lucid.utils.validatorToAddress(spV));
+      //   console.log('addresses', addresses);
+      const tokenListings: MyTokenListing[] = await Promise.all(
+        tokens.map(async (tokenAssetClass, index) => {
+          const [tokenPolicyId, tokenNameHex] = extractPolicyIdFromAssetClass(tokenAssetClass);
+          const spendingValidator = getFinalScript(tokenPolicyId, tokenNameHex);
+          const address = lucid.utils.validatorToAddress(spendingValidator);
+          const bids = await getTokenBids(lucid, address);
+          return {
+            id: tokenAssetClass,
+            name: `Token ${index + 1}`,
+            bids,
+            spendingValidator,
+            isBidsVisible: false,
+            scriptAddress: address,
+          };
+        })
+      );
+      console.log('tokenListings', tokenListings);
+      setMyTokens(tokenListings);
+    } catch (err) {
+      console.log('[getBidsForAllTokens] error');
+      console.error(err);
+    }
+  }
 
   useEffect(() => {
     if (!lucid) return;
@@ -145,7 +160,9 @@ const AcceptBid = () => {
   };
 
   async function getTokenBids(lucid: Lucid, address: string): Promise<TokenBids> {
+    console.log('Searching bad utxos at:', address);
     const bidUtxos = await findBidDatumsAtAddress(lucid, address);
+    console.log('Found bid utxos:', bidUtxos);
     return bidUtxos.map((bidUtxo) => {
       const priceInAda = bidUtxo.utxo.assets['lovelace'] / 1_000_000n;
       return {
@@ -156,29 +173,6 @@ const AcceptBid = () => {
         utxo: bidUtxo.utxo,
       };
     });
-  }
-
-  async function getBidsForAllTokens(lucid: Lucid) {
-    try {
-      const tokens = await fetchWalletTokens(lucid);
-
-      //   const addresses = spendingValidators.map((spV) => lucid.utils.validatorToAddress(spV));
-      //   console.log('addresses', addresses);
-      const tokenListings: MyTokenListing[] = await Promise.all(
-        tokens.map(async (tokenAssetClass, index) => {
-          const [tokenPolicyId, tokenNameHex] = extractPolicyIdFromAssetClass(tokenAssetClass);
-          const spendingValidator = getFinalScript(tokenPolicyId, tokenNameHex);
-          const address = lucid.utils.validatorToAddress(spendingValidator);
-          const bids = await getTokenBids(lucid, address);
-          return { id: tokenAssetClass, name: `Token ${index + 1}`, bids, spendingValidator, isBidsVisible: false };
-        })
-      );
-      console.log('tokenListings', tokenListings);
-      setMyTokens(tokenListings);
-    } catch (err) {
-      console.log('[getBidsForAllTokens] error');
-      console.error(err);
-    }
   }
 
   const acceptBid = async (tokenListing: MyTokenListing, bid: TokenBid) => {
@@ -211,8 +205,10 @@ const AcceptBid = () => {
       console.log('txId', txId);
 
       await TokenListingsApi.deleteTokenListing(id);
-      // We should clear all bids for this token(from any user)
-      // await ActiveBidsApi.
+      // We should clear this active bid(since it can't be redeemed anyways now)
+      // All other active bids on this token are left since they can(and should) be redeemed
+      const txHash = bid.utxo.txHash;
+      await ActiveBidsApi.deleteActiveBid(buyerAddress, txHash);
     } catch (err) {
       console.error('[acceptBid] error');
       console.error(err);
@@ -233,9 +229,25 @@ const AcceptBid = () => {
         myTokens.map((token, index) => (
           <div key={index} className="mb-4">
             <div className="flex justify-between py-2 border-b">
-              <a className="text-zinc-800" href={`https://preview.cexplorer.io/asset/${token.id}`}>
-                {token.name}
-              </a>
+              <div>
+                <a
+                  className="text-zinc-800"
+                  href={`https://preview.cexplorer.io/asset/${token.id}`}
+                  title="View Token on Cardano Explorer"
+                >
+                  {token.name}
+                </a>
+
+                <a
+                  href={`https://preview.cexplorer.io/address/${token.scriptAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-4 pt-2 inline-block"
+                  title="View Smart Contract address on Cardano Explorer"
+                >
+                  <FaFileContract />
+                </a>
+              </div>
               {token.bids && token.bids.length > 0 && (
                 <button onClick={() => toggleBids(token.id)} className="text-blue-600">
                   {`View ${token.bids.length} Bids`}
