@@ -36,6 +36,7 @@ library
     hs-source-dirs:     on-chain
     exposed-modules:    DataListing
                         DataTokenMinting
+                        Bid
 
 test-suite draft-homework
     import:             common-all-tests

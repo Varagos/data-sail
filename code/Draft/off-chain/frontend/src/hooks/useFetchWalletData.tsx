@@ -45,9 +45,9 @@ const useFetchWalletData = (): [DataSession, () => Promise<void>] => {
       console.log(`[useFetchWalletData] Error fetching data`);
     }
   };
-  useEffect(() => {
-    fetchData(); // Initial fetch
-  }, [wAddr, lucid]);
+  // useEffect(() => {
+  //   fetchData(); // Initial fetch
+  // }, [wAddr, lucid]);
 
   return [data, fetchData];
 };

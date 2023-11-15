@@ -6,6 +6,8 @@ import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 import { DataListingDatum, DataListingDatumType } from './DataListing';
 import { signAndSubmitTx } from '@/utilities/utilities';
 import PostBuyComponent from './PostBuyComponent';
+import BidSection from './BidSection';
+import PostBidAccepted from './PostBidAccepted';
 
 type UtxoEntry = {
   id: string;
@@ -82,71 +84,17 @@ function Buyer() {
     fetchUtxos();
   }, []);
 
-  const getSellerAddress = (utxoDatum: DataListingDatumType): string => {
-    if (!lucid) {
-      throw new Error('Lucid not initialized');
-    }
-    // return 'addr_test1qqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335jrvsmd2enzlguaf7hqcyt5urk9y5hvjs3erv50da6l2zzq0etu68';
-    const sellerPubKeyHash = utxoDatum.dataSeller;
-
-    // const sellerAddress = toText(sellerAddressHex);
-    // // We are misssing the staking credentials to create the address just from the pubkeyhash
-    // // Nami and others wallets automatically add the staking credential when creating new wallets
-    // console.log({ sellerAddressHex, sellerAddress });
-    // console.log({ utxoSellerKeyHash: sellerPubKeyHash });
-    const paymentCredential = lucid.utils.keyHashToCredential(sellerPubKeyHash);
-    console.log({ credentials: paymentCredential.type });
-    //TODO Look for utxo using blokfrost, and find address that includes this pubkeyhash
-    const address = lucid.utils.credentialToAddress(paymentCredential);
-    return address;
-  };
-
-  // {
-  //     "sellerAddressHex": "616464725f746573743171716468327673677334706e777774647272757070336c747a686b33327a393668776b7634336879356e333333356a7276736d6432656e7a6c677561663768716379743575726b39793568766a733365727635306461366c327a7a71306574753638",
-  //     "sellerAddress": "addr_test1qqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335jrvsmd2enzlguaf7hqcyt5urk9y5hvjs3erv50da6l2zzq0etu68"
-  // }
-
-  /**
-   * Testing User1 (Seller){
-    "waddr": "addr_test1qqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335jrvsmd2enzlguaf7hqcyt5urk9y5hvjs3erv50da6l2zzq0etu68",
-    "pkh": "1b753208854337396d18f810c7eb15ed1508babbaccac6e4a4e318d2"
-}
-
-
-Datum has pubkeyhash: {
-    "utxoSellerKeyHash": "1b753208854337396d18f810c7eb15ed1508babbaccac6e4a4e318d2"
-}
-correct, but getSellerAddress returns address
-{
-    "sellerAddress": "addr_test1vqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335spv85en"
-}
-
-
-WHEN ADDDING STAKE CREDENTIAL:
-{
-    "sellerAddress": "addr_test1qqdh2vsgs4pnwwtdrrupp3ltzhk32z96hwkv43hy5n3335jrvsmd2enzlguaf7hqcyt5urk9y5hvjs3erv50da6l2zzq0etu68"
-}
-   */
   async function fetchTxInputAddresses(txHash: string) {
-    try {
-      const response = await fetch(`/api/getTxInfo?txHash=${txHash}`);
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('An error occurred while fetching the transaction:', error);
-      return null;
-    }
+    const response = await fetch(`/api/getTxInfo?txHash=${txHash}`);
+    const data = await response.json();
+    return data;
   }
 
   /**
    * Find using txHash and some provider
    */
   const findSellerAddress = async (lockedUtxo: UTxO, pubKeyHash: string): Promise<string> => {
-    const { txHash, outputIndex } = lockedUtxo;
-    console.log({
-      txHash,
-      outputIndex,
-    });
+    const { txHash } = lockedUtxo;
     // const tx = `${txHash}#${outputIndex}`;
     // Tx that locked the utxo, we are trying to find the address that locked it
     // const utxos = await API.txsUtxos(txHash);
@@ -162,8 +110,6 @@ WHEN ADDDING STAKE CREDENTIAL:
     // Multiple addresses because of different staking credentials
     // Return the largest
     return addressesMatchingKeyHash.sort((a, b) => b.length - a.length)[0];
-
-    // return txHash;
   };
 
   const getUtxoLockedTokenAssetClass = (utxo: UTxO): string => {
@@ -183,29 +129,20 @@ WHEN ADDDING STAKE CREDENTIAL:
       console.error('Lucid not initialized');
       return;
     }
-    const pkh: string = getAddressDetails(wAddr!).paymentCredential?.hash || '';
-    // console.log({ waddr: wAddr!, pkh });
     console.log('handleBuy');
     if (!selectedUtxo) {
       console.error('No UTXO selected');
       return;
     }
     const selectedUtxoDatum = selectedUtxo.datum;
-    // const sellerAddress = getSellerAddress(selectedUtxoDatum);
-    // const dataListingAddress = lucid.utils.validatorToAddress(dataListingScript);
-    // console.log({ sellerAddress });
 
     const sellerAddress = await findSellerAddress(selectedUtxo.utxo, selectedUtxoDatum.dataSeller);
     console.log({ sellerAddress });
     const tokenAssetClass = getUtxoLockedTokenAssetClass(selectedUtxo.utxo);
     // Add a download button using the tokenAssetClass (fetch the data, and have them ready for download)
     // make the button available when token gets detected in user's wallet
-    console.log({ tokenAssetClass });
 
-    // console.log({ selectedUtxo: selectedUtxo.utxo });
-    // handle purchase of selected UTXO here
     const redeemer = Data.to<DataListingRedeemer>('Purchase', DataListingRedeemer);
-    console.log({ redeemer });
     setBuyStatus(BuyStatus.Waiting);
     setTokenAssetClass(tokenAssetClass);
     try {
@@ -213,7 +150,6 @@ WHEN ADDDING STAKE CREDENTIAL:
         .newTx()
         .payToAddress(sellerAddress, {
           lovelace: selectedUtxoDatum.price,
-          // lovelace: 10_000_000n, //selectedUtxoDatum.price,
         })
         .collectFrom([selectedUtxo.utxo], redeemer)
         .attachSpendingValidator(dataListingScript)
@@ -233,7 +169,7 @@ WHEN ADDDING STAKE CREDENTIAL:
     <div className="text-zinc-800 font-quicksand">
       <div className="shadow-[0_4px_0px_0px_rgba(0,0,0,0.25)] w-[864px] bg-zinc-50 border border-zinc-600 rounded-xl p-9 mb-5 overflow-x-auto">
         <div className="flex flex-row justify-between items-center mb-5">
-          <h2>Available Data Listings</h2>
+          <h2 className="text-2xl mb-4">Ask - Available Data Listings</h2>
           <button
             onClick={fetchUtxos}
             className="w-16 h-16 rounded-full bg-zinc-800 shadow-[0_5px_0px_0px_rgba(0,0,0,0.6)] font-quicksand font-bold active:translate-y-[2px] active:shadow-[0_4px_0px_0px_rgba(0,0,0,0.6)]"
@@ -275,6 +211,8 @@ WHEN ADDDING STAKE CREDENTIAL:
           <PostBuyComponent buyStatus={buyStatus} tokenAssetClass={tokenAssetClass} setBuyStatus={setBuyStatus} />
         </div>
       </div>
+      <BidSection />
+      <PostBidAccepted />
     </div>
   );
 }

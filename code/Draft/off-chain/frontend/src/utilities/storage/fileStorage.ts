@@ -20,7 +20,7 @@ export class LocalJSONFileStorage implements IStorage {
     await this.writeToFile(storage);
   }
 
-  public async storeData(data: DataSession | string, id?: StorageIdentifier): Promise<StorageIdentifier> {
+  public async storeData(data: string, id?: StorageIdentifier): Promise<StorageIdentifier> {
     const identifier = id || Date.now().toString();
     const storage = await this.readFromFile();
     storage.set(identifier, data);
@@ -28,7 +28,7 @@ export class LocalJSONFileStorage implements IStorage {
     return identifier;
   }
 
-  public async retrieveData(identifier: StorageIdentifier): Promise<DataSession | string | null> {
+  public async retrieveData(identifier: StorageIdentifier): Promise<string | null> {
     const storage = await this.readFromFile();
     const data = storage.get(identifier);
     if (!data) {
@@ -37,17 +37,7 @@ export class LocalJSONFileStorage implements IStorage {
     return data;
   }
 
-  public async retrieveAllData(): Promise<Array<DataSession | string>> {
-    const storage = await this.readFromFile();
-    // Here we ensure that the first item is always the most recent one for simplicity
-    const sortedData = Array.from(storage.entries())
-      .sort((a, b) => Number(b[0]) - Number(a[0])) // Sort by keys (timestamps) in descending order
-      .map((entry) => entry[1]); // Extract the values
-    return sortedData;
-    // return Array.from(storage.values());
-  }
-
-  private async readFromFile(): Promise<Map<StorageIdentifier, DataSession | string>> {
+  private async readFromFile(): Promise<Map<StorageIdentifier, string>> {
     try {
       const fileContent = await fs.readFile(this.filePath, 'utf8');
       const jsonObject = JSON.parse(fileContent);
@@ -56,7 +46,7 @@ export class LocalJSONFileStorage implements IStorage {
       return new Map();
     }
   }
-  private async writeToFile(storage: Map<StorageIdentifier, DataSession | string>): Promise<void> {
+  private async writeToFile(storage: Map<StorageIdentifier, string>): Promise<void> {
     const jsonObject = Object.fromEntries(storage);
     const fileContent = JSON.stringify(jsonObject, null, 2);
     await fs.writeFile(this.filePath, fileContent, 'utf8');

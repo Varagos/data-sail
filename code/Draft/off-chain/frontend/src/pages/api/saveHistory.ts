@@ -1,4 +1,3 @@
-// pages/api/saveHistory.js
 import { NextApiRequest, NextApiResponse } from 'next';
 import { encrypt } from '@/utilities/encryption';
 import { ipfsStorage, storage } from '@/utilities/storage/index';
@@ -8,10 +7,10 @@ const saveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
     return res.status(405).end();
   }
+  console.info(`[${new Date().toLocaleTimeString()}]: POST /api/saveHistory`);
 
-  // console.log('req.body', req.body);
-  const data = req.body.data; // Validate and sanitize the data as needed
-  const walletAddr = req.body.walletAddr; // Validate and sanitize the data as needed
+  const data = req.body.data;
+  const walletAddr = req.body.walletAddr;
   if (!data || !walletAddr) {
     console.log('Missing params');
     return res.status(400).json({ error: 'Data and walletAddr are required' });
@@ -30,14 +29,8 @@ const saveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   const cid = await ipfsStorage.storeData(encryptedData);
 
   const identifier = await storage.storeData(cid, walletAddr);
-  // console.log('Saving history result', identifier);
 
   res.status(201).json({ success: true, data: identifier });
 };
 
 export default saveHistory;
-
-// const generateEncryptionKey = () => {
-// const encryptionKey = crypto.randomBytes(32).toString('hex');
-// console.log('Generated 32-byte key:', encryptionKey);
-// }

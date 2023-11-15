@@ -1,12 +1,7 @@
-// pages/api/retrieveHistoryForBuyer.ts
-
 import { DataSession } from '@/types';
-import { walletHasToken } from '@/utilities/blockfrost/wallet-has-token';
-import { WALLET_ADDRESS_HEADER } from '@/utilities/digital-signature/create-header';
 import { decrypt } from '@/utilities/encryption';
-import { isSignedByWalletGuard } from '@/utilities/guards/is-signed-by-wallet';
+import { isTokenOwnerGuard } from '@/utilities/guards/is-token-owner';
 import { ipfsStorage, storage } from '@/utilities/storage/index';
-import crypto from 'crypto';
 import { Blockfrost, Lucid } from 'lucid-cardano';
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -14,14 +9,13 @@ const blockFrostKey = process.env.BLOCKFROST_API_KEY;
 const lucid = await Lucid.new(new Blockfrost('https://cardano-preview.blockfrost.io/api/v0', blockFrostKey), 'Preview');
 
 /**
- * Improvements:
- * - Authorization, demand owner of token sends a signed nonce timestamped
- * (we can validate the token's wallet owner server side)
+ * Retrieves history of data associated with the given token asset class
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).end();
   }
+  console.info('POST /api/retrieveHistoryForBuyer');
 
   const { tokenAssetClass } = req.body;
 
@@ -29,18 +23,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Token asset class and wallet address are required' });
   }
 
-  const validationResult = isSignedByWalletGuard(req, lucid);
+  const validationResult = await isTokenOwnerGuard(req, lucid, tokenAssetClass);
   if (validationResult.success === false) {
-    return res.status(401).json({ success: false, message: validationResult.error });
-  }
-  const wallet = req.headers[WALLET_ADDRESS_HEADER] as string;
-  // Make sure wallet is owner of tokenAssetClass
-  const walletHasTokenResult = await walletHasToken(wallet, tokenAssetClass);
-  if (!walletHasTokenResult) {
-    return res.status(401).json({ error: 'Wallet does not own the given token asset class' });
+    return res.status(401).json({ error: validationResult.error });
   }
 
-  const cid = await storage.retrieveData(tokenAssetClass as string);
+  const cid = await storage.retrieveData(tokenAssetClass);
   console.log('cid', cid);
   if (!cid) {
     return res.status(404).json({ error: 'No data found for the given token asset class' });

@@ -1,7 +1,8 @@
-version: "3.5"
+version: '3.5'
 volumes:
   node-ipc:
   node-db:
+  redis-data:
 services:
   cardano-node:
     image: robertinoiog/cardano-node:1.35.5-v3
@@ -11,10 +12,10 @@ services:
       - node-db:/data/db
       - node-ipc:/ipc
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "200k"
-        max-file: "10"
+        max-size: '200k'
+        max-file: '10'
   ppp:
     image: robertinoiog/plutus-pioneer-program-4:v6
     # build: .
@@ -33,7 +34,14 @@ services:
     command: /bin/sh -c "while sleep 1000; do :; done"
 
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "200k"
-        max-file: "10"
+        max-size: '200k'
+        max-file: '10'
+
+  redis: # New Redis service
+    image: 'redis:latest'
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data

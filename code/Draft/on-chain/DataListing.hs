@@ -23,7 +23,7 @@ import           Plutus.V2.Ledger.Api      (Address (addressCredential),
                                             TxOut (txOutAddress), Validator,
                                             ValidatorHash, Value,
                                             mkValidatorScript)
-import           Plutus.V2.Ledger.Contexts (findDatum, ownHash, valuePaidTo)
+import           Plutus.V2.Ledger.Contexts (findDatum, ownHash, valuePaidTo, txSignedBy)
 import           PlutusTx                  (FromData (fromBuiltinData), compile,
                                             unstableMakeIsData)
 import           PlutusTx.Prelude          (Bool (False), Eq ((==)), Integer,
@@ -53,9 +53,7 @@ parseDataListingDatum o info = case o of
 data DataListDatum = DataListDatum
     {
      dataSeller :: PubKeyHash
-    --  , dataSellerAddress :: Address
     , price     :: Integer
-    -- , dataLocation :: BuiltinByteString
     } deriving Prelude.Show
 unstableMakeIsData ''DataListDatum
 
@@ -69,8 +67,7 @@ mkValidator :: DataListDatum -> DataListingRedeemer -> ScriptContext -> Bool
 mkValidator dat r ctx = case r of
     Purchase -> traceIfFalse "Amount required not paid to owner" buyerHasPaidSeller &&
         traceIfFalse "You must consume only one utxo" consumesOnlyOneUtxo
-    Redeem    -> traceError "Redeem not implemented"
-        -- traceIfFalse "data seller's signature missing" checkSignedBySeller
+    Redeem    -> traceIfFalse "data seller's signature missing" checkSignedBySeller
 
   where
 
@@ -107,6 +104,9 @@ mkValidator dat r ctx = case r of
             protectedByThisScript c = case c of
                 PubKeyCredential _  -> False
                 ScriptCredential vh -> vh == scriptAddress
+
+    checkSignedBySeller :: Bool
+    checkSignedBySeller = txSignedBy info $ dataSeller dat
 
 
 

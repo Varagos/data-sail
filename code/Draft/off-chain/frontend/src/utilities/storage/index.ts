@@ -4,8 +4,7 @@ import { IpfsStorage } from './ipfsStorage';
 
 export interface IStorage {
   storeData(data: DataSession | string, id?: StorageIdentifier): Promise<StorageIdentifier>;
-  retrieveData(identifier: StorageIdentifier): Promise<DataSession | string | null>;
-  retrieveAllData(): Promise<Array<DataSession | string>>;
+  retrieveData(identifier: StorageIdentifier): Promise<string | null>;
   deleteData(identifier: StorageIdentifier): Promise<void>;
 }
 

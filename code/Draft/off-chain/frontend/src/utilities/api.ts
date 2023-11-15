@@ -1,7 +1,9 @@
-import { DataSession } from '@/types';
+import type { TokenListing } from '@/services/token-listings/interface';
+import type { DataSession } from '@/types';
 import { signMessage } from './digital-signature/sign-message';
 import { Lucid } from 'lucid-cardano';
 import { createDigitalSignatureHeader, createWalletHeader } from './digital-signature/create-header';
+import type { ActiveBid } from '@/services/active-bids/interface';
 
 export async function associateDataWithToken(walletAddr: string, dataTokenAssetClass: string) {
   const res = await fetch('/api/associateDataWithToken', {
@@ -47,5 +49,95 @@ export async function retrieveHistoryForBuyer(
   } else {
     console.log('Error:', res.status, res);
     throw new Error('Error retrieving history for buyer');
+  }
+}
+export class TokenListingsApi {
+  static async fetchTokenListings(): Promise<TokenListing[]> {
+    const res = await fetch('/api/tokenListing/fetchAll', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (res.ok) {
+      const { data: tokenListings } = await res.json();
+      console.log('Token Listings:', tokenListings);
+      return tokenListings as TokenListing[];
+    } else {
+      console.log('Error:', res.status);
+      throw new Error('Error fetching token listings');
+    }
+  }
+
+  static async deleteTokenListing(tokenAssetClass: string): Promise<void> {
+    const res = await fetch('/api/tokenListing/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tokenAssetClass }),
+    });
+
+    if (res.ok) {
+      console.log('Token listing deleted');
+    } else {
+      console.log('Error:', res.status);
+      throw new Error('Error deleting token listing');
+    }
+  }
+}
+
+export class ActiveBidsApi {
+  static async fetchActiveBids(wallet: string): Promise<ActiveBid[]> {
+    const res = await fetch(`/api/activeBid/fetchByWallet?wallet=${wallet}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (res.ok) {
+      const { data: activeBids } = await res.json();
+      console.log('Active Bids:', activeBids);
+      return activeBids as ActiveBid[];
+    } else {
+      console.log('Error:', res.status);
+      throw new Error('Error fetching active bids');
+    }
+  }
+
+  static async createActiveBid(wallet: string, activeBid: ActiveBid): Promise<void> {
+    const res = await fetch('/api/activeBid/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ wallet, activeBid }),
+    });
+
+    if (res.ok) {
+      console.log('Active bid created');
+    } else {
+      console.log('Error:', res.status);
+      throw new Error('Error creating active bid');
+    }
+  }
+
+  static async deleteActiveBid(wallet: string, bidId: string): Promise<void> {
+    const res = await fetch('/api/activeBid/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ wallet, bidId }),
+    });
+
+    if (res.ok) {
+      console.log('Active bid deleted');
+    } else {
+      console.log('Error:', res.status);
+      throw new Error('Error deleting active bid');
+    }
   }
 }
