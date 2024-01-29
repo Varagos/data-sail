@@ -37,7 +37,7 @@ function DataListing() {
   const { lucid, wAddr, dataTokenPolicyIdHex, dataListingScript } = appState;
   // Poll every 3s
   // const data = usePollingData(3000);
-  const [data, fetchWalletData] = useFetchWalletData();
+  const [walletData, fetchWalletData] = useFetchWalletData();
   const [askingPrice, setAskingPrice] = useState<number | null>(null);
 
   const getUtxo = async (address: string): Promise<UTxO> => {
@@ -97,6 +97,7 @@ function DataListing() {
       .newTx()
       .mintAssets({ [unit]: 1n }, redeemer)
       .attachMintingPolicy(policy)
+      .attachMetadata(0, walletData!.cid)
       // Collect from the Token parameterized UTxO
       .collectFrom([utxo])
       // Balance the tx
@@ -156,8 +157,8 @@ function DataListing() {
         />
 
         <ul className="w-full p-4">
-          {data && data.length > 0 ? (
-            data.map((item, index) => (
+          {walletData !== null && walletData.data.length > 0 ? (
+            walletData.data.map((item, index) => (
               <li key={index} className="flex justify-between py-2 border-b">
                 <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 truncate">
                   {item.url}
@@ -171,7 +172,7 @@ function DataListing() {
         </ul>
 
         <div className="flex flex-col mb-2 mb-8">
-          <ButtonDarkFullWidth clickHandler={mintDataToken} disabled={!data || data.length === 0}>
+          <ButtonDarkFullWidth clickHandler={mintDataToken} disabled={!walletData || walletData.data.length === 0}>
             Mint Data Token
           </ButtonDarkFullWidth>
         </div>

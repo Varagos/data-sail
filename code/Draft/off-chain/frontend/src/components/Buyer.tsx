@@ -142,6 +142,8 @@ function Buyer() {
     // Add a download button using the tokenAssetClass (fetch the data, and have them ready for download)
     // make the button available when token gets detected in user's wallet
 
+    const metadata = await lucid.metadataOf(tokenAssetClass);
+
     const redeemer = Data.to<DataListingRedeemer>('Purchase', DataListingRedeemer);
     setBuyStatus(BuyStatus.Waiting);
     setTokenAssetClass(tokenAssetClass);

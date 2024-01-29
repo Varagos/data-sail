@@ -4,8 +4,13 @@ import { createDigitalSignatureHeader, createWalletHeader } from '@/utilities/di
 import { signMessage } from '@/utilities/digital-signature/sign-message';
 import { useContext, useEffect, useState } from 'react';
 
-const useFetchWalletData = (): [DataSession, () => Promise<void>] => {
-  const [data, setData] = useState<DataSession>([]);
+export type WalletData = {
+  data: DataSession;
+  cid: string;
+};
+
+const useFetchWalletData = (): [WalletData | null, () => Promise<void>] => {
+  const [data, setData] = useState<WalletData | null>(null);
 
   const { appState } = useContext(AppStateContext);
   const { wAddr, lucid } = appState;
@@ -39,7 +44,10 @@ const useFetchWalletData = (): [DataSession, () => Promise<void>] => {
         return;
       }
 
-      setData(data.data);
+      setData({
+        data: data.data,
+        cid: data.cid,
+      });
     } catch (error) {
       console.error(error);
       console.log(`[useFetchWalletData] Error fetching data`);

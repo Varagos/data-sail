@@ -60,7 +60,7 @@ const retrieveHistory = async (req: NextApiRequest, res: NextApiResponse) => {
   const dataSession: DataSession = JSON.parse(decryptedData);
   // console.log({ dataSession });
   // console.log('Retrieving history result');
-  res.status(200).json({ success: true, data: dataSession });
+  res.status(200).json({ success: true, data: dataSession, cid: cid });
   // console.log('Retrieving history result', result);
   // res.status(200).json({ success: true, data: result });
 };

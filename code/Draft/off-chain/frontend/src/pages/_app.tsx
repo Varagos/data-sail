@@ -65,7 +65,7 @@ export default function App({ Component, pageProps }: AppProps) {
       new Blockfrost('https://cardano-preview.blockfrost.io/api/v0', blockFrostKey),
       'Preview'
     );
-    if (!window.cardano.nami) {
+    if (!window.cardano?.nami) {
       window.alert('Please install Nami Wallet');
       return;
     }

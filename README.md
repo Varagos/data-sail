@@ -28,10 +28,22 @@ After successfully running this command, you will see the system prompt back wit
 
 8. `cabal test all`
 
+9. Build and load the browser extension
+
+```bash
+cd code/Draft/off-chain/extension
+
+npm install
+
+npm run start
+
+# Load the build folder into chrome://extensions
+```
 
 ### Common Issues
- - node permission denied:
- Run `chown -R root:root . `
 
- - npm: cannot find module bootloader
- Disable autto-atach debugging
+- node permission denied:
+  Run `chown -R root:root . `
+
+- npm: cannot find module bootloader
+  Disable autto-atach debugging
